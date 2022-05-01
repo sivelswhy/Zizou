@@ -9,7 +9,7 @@ const fs = require("fs");
 
 const zlib = require("zlib");
 
-const { axios, fetch} = require("axios");
+const axios = require("axios");
 
 const os = require("os");
 
@@ -21,7 +21,6 @@ const { tracker } = require('@androz2091/discord-invites-tracker');
 const player = new Player(client, {initialVolume: 30, languages: ["fr-FR"]});
 
 const config = require("./data/config.json");
-
 
 const { DiscordTogether } = require("discord-together");
 client.discordTogether = new DiscordTogether(client);
@@ -98,6 +97,10 @@ client.on("messageCreate", async (message) => {
             required: true,
           },
         ],
+      },
+      {
+        name: 'meme',
+        description: 'Afficher un meme',
       },
       {
         name: "poll",
@@ -526,6 +529,10 @@ client.on("messageCreate", async (message) => {
           },
         ],
       },
+      {
+        name: 'news',
+        description: 'Affichez les dernière news.'
+      }
     ];
 
     const command = await client.guilds.cache
@@ -1436,4 +1443,35 @@ client.on('voiceStateUpdate', async (user, oldState, newState) => {
     }
   }
 })
+client.on('interactionCreate', async interaction => {
+if (!interaction.isCommand()) return;
+if (interaction.commandName === 'news') {
+ // make a request to the news api and retrieve the data
+ async function getNews() {
+  try {
+    let response = await axios.get(`https://newsapi.org/v2/top-headlines?country=fr&apiKey=${config.newskey}`);	
+  return response.data;
+  } catch (error) {
+    return interaction.reply({content: `⚠️ Une erreur est survenue lors de la recherche de la ville __**\`${loca}\`**__ ⚠️`, ephemeral: true});
+  }
+  }
+  let res = await getNews();
+  let remoji = Math.floor((Math.random() * config.newsemoji.length))
+  remoji = config.newsemoji[remoji]
+ const newsembed = new MessageEmbed()
+  .setTitle('📢 | Dernière nouvelles')
+  .setFooter({ text: `${interaction.user.username}#${interaction.user.discriminator}`, icon_url: interaction.user.avatarURL() })
+  .setColor("#82b597")
+  .setTimestamp()
+  .setThumbnail(zizou)
+  newsembed.addFields({
+    name: `${remoji} | ${res.articles[0].title}`, value: `${res.articles[0].description} *[\`Lien vers l'article\`](${res.articles[0].url})*`},
+  { name: `${remoji} | ${res.articles[1].title}`, value: `${res.articles[1].description} *[\`Lien vers l'article\`](${res.articles[1].url})*`},
+    // { name: `${remoji} | ${res.articles[2].title}`, value: `${res.articles[2].description} *[\`Lien vers l'article\`](${res.articles[2].url})*`, inline: false, },
+    { name: `${remoji} | ${res.articles[3].title}`, value: `${res.articles[3].description} *[\`Lien vers l'article\`](${res.articles[3].url})*`, inline: false, },
+    { name: `${remoji} | ${res.articles[4].title}`, value: `${res.articles[4].description} *[\`Lien vers l'article\`](${res.articles[4].url})*`, inline: false, }
+  )
+  return await interaction.reply({ embeds: [newsembed], ephemeral: true });
+}
+});
 client.login(config.token);
