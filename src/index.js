@@ -33,7 +33,7 @@ const { Player } = require("discord-player");
 const { tracker } = require("@androz2091/discord-invites-tracker");
 
 // Create a new Player (you don't need any API Key)
-const player = new Player(client, { initialVolume: 30, languages: ["fr-FR"] });
+const player = new Player(client, { initialVolume: 35, languages: ["fr-FR"] });
 
 const config = require("./data/config.json");
 
@@ -75,6 +75,17 @@ async function translate(phrase) {
 
   return res;
 }
+function savePronote(username, password, etablissement, user) {
+  // fs.writeFileSync(path.join(__dirname, "../src/data/db.json"), JSON.stringify(`${username, password, etablissement}`, null, 2))
+  fs.writeFileSync(
+    path.join(__dirname, "../src/data/db.json"),
+    JSON.stringify(
+      (db["pronote"] = `${username}, ${password}, ${etablissement}, ${author}`),
+      null,
+      2
+    )
+  );
+}
 
 const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
 
@@ -94,6 +105,33 @@ client.on("ready", async () => {
     url: "https://www.twitch.tv/sivelsdev",
   });
 });
+
+// tracker.on('guildMemberAdd', (member, type, invite) => {
+
+//   const welcomeChannel = member.guild.channels.cache.find((ch) => ch.name === 'invite');
+
+//   if(type === 'normal'){
+//       welcomeChannel.send(`**${member}** est arrivé en utilisant l'invite spéciale de **${invite.inviter.username}** !`);
+//   }
+
+//   else if(type === 'vanity'){
+//       welcomeChannel.send(`**${member}** est arrivé en utilisant une invite spéciale !`);
+//   }
+
+//   else if(type === 'permissions'){
+//       welcomeChannel.send(`Welcome ${member}! I can't figure out how you joined because I don't have the "Manage Server" permission!`);
+//   }
+
+//   else if(type === 'unknown'){
+//       welcomeChannel.send(` Je n'arrive pas à savoir la provennace de **${member}** !`);
+//   }
+
+// });
+// distube.on("error", (channel, error) => {
+//   const user = "494079726470823936";
+//   console.error(error);
+//   // channel.send(`An error encoutered: ${error.slice(0, 1979)}`) // Discord limits 2000 characters in a message
+// });
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
 
@@ -1308,7 +1346,16 @@ client.on("interactionCreate", async (interaction) => {
       }`
     );
   }
-});;
+});
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "pronote") {
+    const etablissement = interaction.options.getString("etablissement");
+    const username = interaction.options.getString("username");
+    const password = interaction.options.getString("password");
+    savePronote(username, password, etablissement, interaction.user.id);
+  }
+});
 // client.on('interactionCreate', async interaction => {
 // if (!interaction.isCommand()) return;
 // if (interaction.commandName === 'wikipedia') {
