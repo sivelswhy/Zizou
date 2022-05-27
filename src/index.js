@@ -33,16 +33,25 @@ const { Player } = require("discord-player");
 const { tracker } = require("@androz2091/discord-invites-tracker");
 
 // Create a new Player (you don't need any API Key)
-const player = new Player(client, { initialVolume: 30, languages: ["fr-FR"],});
+const player = new Player(client, { initialVolume: 30, languages: ["fr-FR"] });
 
 const config = require("./data/config.json");
 
-const  db = require("./data/db.json");
+const db = require("./data/db.json");
 
 const { DiscordTogether } = require("discord-together");
 const path = require("path");
+const { ifError } = require("assert");
+const { start } = require("repl");
 client.discordTogether = new DiscordTogether(client);
 let nameembed;
+
+function getUnix(string) {
+  return Math.floor(string / 1000);
+}
+function lowerCases(phrase) {
+  return phrase.toLowerCase();
+}
 
 const bloodslogo =
   "https://cdn.discordapp.com/attachments/965739781839523880/965929991797878834/ZIDANECHUT-NB__1_-removebg-preview.png";
@@ -52,9 +61,19 @@ const logsmp = "966268215913222164";
 function capFL(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
-function savePronote(username, password, etablissement, author) {
-  // fs.writeFileSync(path.join(__dirname, "../src/data/db.json"), JSON.stringify(`${username, password, etablissement}`, null, 2))
-  fs.writeFileSync(path.join(__dirname, "../src/data/db.json"), JSON.stringify(db["pronote"] = `${username}, ${password}, ${etablissement}, ${author}`, null, 2));
+async function translate(phrase) {
+  const postOptions = {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  };
+  const body = `text=${phrase}&lang=fr`;
+  // const res = await axios.post(
+  //   "https://api-free.deepl.com/v2/translate",
+  //   body,
+  //   postOptions
+  // ).catch(err => console.warn(err));
+  const res = await axios.post();
+
+  return res;
 }
 
 const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
@@ -66,721 +85,14 @@ client.on("ready", async () => {
     "--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\nBot BLOODS online !"
   );
   client.user.setStatus("online");
-  client.user.setActivity("AIDE ? -> !start en MP pour contacter le STAFF", {
+  // client.user.setActivity("Toujours à l'heure, quelque sois l'heure", {
+  //   type: "PLAYING",
+  //   url: "https://www.twitch.tv/sivelsdev",
+  // });
+  client.user.setActivity("Toujours à l'heure, quelque sois l'heure !", {
     type: "PLAYING",
     url: "https://www.twitch.tv/sivelsdev",
   });
-});
-
-// tracker.on('guildMemberAdd', (member, type, invite) => {
-
-//   const welcomeChannel = member.guild.channels.cache.find((ch) => ch.name === 'invite');
-
-//   if(type === 'normal'){
-//       welcomeChannel.send(`**${member}** est arrivé en utilisant l'invite spéciale de **${invite.inviter.username}** !`);
-//   }
-
-//   else if(type === 'vanity'){
-//       welcomeChannel.send(`**${member}** est arrivé en utilisant une invite spéciale !`);
-//   }
-
-//   else if(type === 'permissions'){
-//       welcomeChannel.send(`Welcome ${member}! I can't figure out how you joined because I don't have the "Manage Server" permission!`);
-//   }
-
-//   else if(type === 'unknown'){
-//       welcomeChannel.send(` Je n'arrive pas à savoir la provennace de **${member}** !`);
-//   }
-
-// });
-// distube.on("error", (channel, error) => {
-//   const user = "494079726470823936";
-//   console.error(error);
-//   // channel.send(`An error encoutered: ${error.slice(0, 1979)}`) // Discord limits 2000 characters in a message
-// });
-client.on("messageCreate", async (message) => {
-  if (!client.application?.owner) await client.application?.fetch();
-
-  if (
-    message.content.toLowerCase() === "!deploy" &&
-    message.author.id === client.application?.owner.id
-  ) {
-    const data = [
-      {
-        name: "play",
-        description: "Jouer une musique",
-        options: [
-          {
-            type: 3,
-            name: "nom-lien",
-            description: "nom ou lien de la musique",
-            required: true,
-          },
-        ],
-      },
-      {
-        "name": "pronote",
-        "description": "Newsletter pronote dans discord",
-        "options": [
-          {
-            "type": 3,
-            "name": "etablissement",
-            "description": "Lien de votre établiseemnt",
-            "required": true
-          },
-          {
-            "type": 3,
-            "name": "username",
-            "description": "Le nomd'utilisateur de votre compte",
-            "required": true
-          },
-          {
-            "type": 3,
-            "name": "password",
-            "description": "Mot de passe de votre compte",
-            "required": true
-          }
-        ]
-      },
-      {
-        "name": "wikipedia",
-        "description": "Rechercher quelque chose sur Wikipédia",
-        "options": [
-          {
-            "type": 3,
-            "name": "recherche",
-            "description": "La chose que vous voulez recherche sur wikipédia",
-            "required": true,
-            autocomplete: true,
-          }
-        ]
-      },
-      // {
-      //   name: "filtre",
-      //   description: "Ajouter un filtre à la musique",
-      //   options: [
-      //     {
-      //       type: 3,
-      //       name: "effet",
-      //       description: "🎶Effet de la musique",
-      //       required: true,
-      //       choices: [
-      //         {
-      //           name: "Bassboosted",
-      //           value: "bassboost",
-      //         },
-      //         {
-      //           name: "8D",
-      //           value: "8d",
-      //         },
-      //         {
-      //           name: "Nightcore",
-      //           value: "nigthcore",
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
-
-      // {
-      //   name: "poll",
-      //   description: "Créer un sondage",
-      //   options: [
-      //     {
-      //       type: 3,
-      //       name: "question",
-      //       description: "Question du sondage",
-      //       required: true,
-      //     },
-      //     {
-      //       type: 10,
-      //       name: "duree",
-      //       description: "Durée du sondage EN MINUTES (pas plus de 60 minutes)",
-      //       required: true,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option1",
-      //       description: "Option 1",
-      //       required: true,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option2",
-      //       description: "Option 2",
-      //       required: true,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option3",
-      //       description: "Option 3",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option4",
-      //       description: "Option 4",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option5",
-      //       description: "Option 5",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option6",
-      //       description: "Option 6",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option7",
-      //       description: "Option 7",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option8",
-      //       description: "Option 8",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option9",
-      //       description: "Option 9",
-      //       required: false,
-      //     },
-      //     {
-      //       type: 3,
-      //       name: "option10",
-      //       description: "Option 10",
-      //       required: false,
-      //     },
-      //   ],
-      // },
-      {
-        name: "8ball",
-        description: "Pose une question et attends une réponse 🤫",
-        options: [
-          {
-            type: 3,
-            name: "question",
-            description: "Question",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "imc",
-        description: "Calculer votre IMC depuis discord",
-        options: [
-          {
-            type: 10,
-            name: "taille",
-            description: "Votre taille en CENTIMETRE",
-            required: true,
-          },
-          {
-            type: 10,
-            name: "poids",
-            description: "Votre poids en KG",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "skip",
-        description: "Passer la musique en cours",
-      },
-      {
-        name: "pause",
-        description: "Mettre en pause la musique en cours",
-      },
-      {
-        name: "resume",
-        description: "Reprendre la musique en cours",
-      },
-      {
-        name: "send",
-        description: "Envoyer un message à un utilisateur",
-        options: [
-          {
-            type: 3,
-            name: "texte",
-            description: "Le texte que vous souhaitez envoyer à la personne",
-            required: true,
-          },
-          {
-            type: 6,
-            name: "utilisateur",
-            description:
-              "L'utilisateur à qui vous souhaitez envoyer ce message",
-            required: true,
-          },
-          {
-            name: "direct",
-            type: 5,
-            description:
-              "Envoyer le message directement à la personne sans décoration",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "volume",
-        description: "Choisir le volume de la musique",
-        options: [
-          {
-            type: 10,
-            name: "volume",
-            description: "Le montant du volume",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "stop",
-        description: "Arrêter la musique",
-      },
-      {
-        name: "queue",
-        description: "Avoir les musiques dans la queue",
-      },
-      {
-        name: "card",
-        description: "Créez une fausse carte d'identitée ou autre.",
-        options: [
-          {
-            type: 10,
-            name: "id",
-            description: "Votre ID",
-            required: true,
-          },
-          {
-            type: 3,
-            name: "sexe",
-            description: "Sexe voulu",
-            choices: [
-              {
-                name: "Homme",
-                value: "male",
-              },
-              {
-                name: "Femme",
-                value: "female",
-              },
-            ],
-            required: true,
-          },
-          {
-            type: 3,
-            name: "origine",
-            description: "origine",
-            choices: [
-              {
-                name: "Arabe (Jordanie)",
-                value: "arabic-jordan",
-              },
-              {
-                name: "Autriche",
-                value: "german-austria",
-              },
-              {
-                name: "Canada",
-                value: "english-canada",
-              },
-              {
-                name: "Angleterre",
-                value: "english-united-kingdom",
-              },
-              {
-                name: "Philippines",
-                value: "english-philippines",
-              },
-              {
-                name: "États-Unis",
-                value: "english-united-states",
-              },
-              {
-                name: "Afrique du Sud (anglais)",
-                value: "english-south-africa",
-              },
-              {
-                name: "Espagne",
-                value: "spanish-spain",
-              },
-              {
-                name: "Canada (français)",
-                value: "french-canada",
-              },
-              {
-                name: "France",
-                value: "french-france",
-              },
-              {
-                name: "Armenie",
-                value: "armenian-armenia",
-              },
-              {
-                name: "Islande",
-                value: "icelandic-iceland",
-              },
-              {
-                name: "Italie",
-                value: "italian-italy",
-              },
-              {
-                name: "Japon",
-                value: "japanese-japan",
-              },
-              {
-                name: "Corée du Sud",
-                value: "korean-south-korea",
-              },
-              {
-                name: "Norvège",
-                value: "norwegian-norway",
-              },
-              {
-                name: "Pologne",
-                value: "polish-poland",
-              },
-              {
-                name: "Brésil",
-                value: "portuguese-brazil",
-              },
-              {
-                name: "Roumanie",
-                value: "romanian-romania",
-              },
-              {
-                name: "Russe",
-                value: "russian-russia",
-              },
-              {
-                name: "Slovènie",
-                value: "slovenian-slovenia",
-              },
-              {
-                name: "Turquie",
-                value: "turkish-turkey",
-              },
-              {
-                name: "Ukraine",
-                value: "ukrainian-ukraine",
-              },
-              {
-                name: "Chine",
-                value: "chinese-china",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: "clear",
-        description: "Supprimez des messages en masse",
-        options: [
-          {
-            type: 10,
-            name: "nombre",
-            description: "le nombre de messages que vous voullez supprimer",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "Save",
-        type: "MESSAGE",
-      },
-      {
-        name: "Info",
-        type: "USER",
-      },
-      {
-        name: "roll",
-        description: "Faites un /roll, comme si vous êtiez in-game !",
-      },
-      // {
-      //   name: "lyrics",
-      //   description: "Avoir les paroles d'une chanson",
-      //   options: [
-      //     {
-      //       type: 3,
-      //       name: "chanson",
-      //       description: "Le nom de la chanson",
-      //       required: false,
-      //     },
-      //   ],
-      // },
-      {
-        name: "qrcode",
-        description: "Créez un QRCode depuis Discord!",
-        options: [
-          {
-            type: 3,
-            name: "url",
-            description:
-              "URL du lien que vous souhaitez insérer dans le QRCode.",
-            required: true,
-          },
-        ],
-      },
-      {
-        name: "os",
-        description: "Ayez les infos du bot, comme son ping !",
-      },
-      {
-        name: "activity",
-        description: "Jouez à des jeux, mais dans Discord",
-        options: [
-          {
-            type: 3,
-            name: "jeu",
-            description: "Jeu auquel vous souhaitez jouer",
-            required: true,
-            choices: [
-              {
-                name: "YouTube",
-                value: "youtube",
-              },
-              {
-                name: "Poker",
-                value: "poker",
-              },
-              {
-                name: "échecs",
-                value: "chess",
-              },
-              {
-                name: "Betrayal(jsp ce que c'est)",
-                value: "betrayal",
-              },
-              {
-                name: "Fishington",
-                value: "fishington",
-              },
-              {
-                name: "Scrabble (en anglais)",
-                value: "lettertile",
-              },
-              {
-                name: "Doodle Crew(jsp ce que c'est)",
-                value: "doodlecrew",
-              },
-              {
-                name: "SpellCast(jsp ce que c'est)",
-                value: "spellcast",
-              },
-              {
-                name: "Awkword(jsp ce que c'est)",
-                value: "awkword",
-              },
-              {
-                name: "Puttparty (jsp ce que c'est)",
-                value: "puttpary",
-              },
-              {
-                name: "Skribbl.io",
-                value: "sketchheads",
-              },
-              {
-                name: "Ocho (Uno)",
-                value: "ocho",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: "infoserv",
-        description: "Avoir les infos du serveur CTG In-Game",
-      },
-      {
-        name: "weather",
-        description: "Avoir la météo d'une ville ou d'un Pays",
-        options: [
-          {
-            type: 3,
-            name: "position",
-            description: "La ville ou le pays d'on vous souhaitez la météo",
-            required: true,
-          },
-        ],
-      },
-      {
-        "name": "news",
-        "description": "Affichez les dernière news.",
-        "options": [
-          {
-            "type": 3,
-            "name": "pays",
-            "description": "Les news du pays que vous souhaitez avoir ⚠️(les news seront affichés dans la langue de ce pays)⚠️",
-            "required": true,
-            "choices": [
-              {
-                name: "France",
-                value: "fr",
-              },
-              {
-                "name": "États-Unis",
-                "value": "us"
-              },
-              {
-                "name": "Ukraine",
-                "value": "ua"
-              },
-              {
-                "name": "Italie",
-                "value": "it"
-              },
-            ]
-          }
-        ]
-      },
-    ];
-
-    const command = await client.guilds.cache
-      .get("929774859523879002")
-      ?.commands.set(data);
-    console.log(command);
-
-    fs.writeFile("slashcommands.json", JSON.stringify(command), function (err) {
-      if (err) throw err;
-      console.log("File is created successfully for slash commands data.");
-    });
-  }
-});
-
-//! BULK UPDATE COMMANDS
-/*
-client.on('messageCreate', async message => {
-	if (!client.application?.owner) await client.application?.fetch();
-
-	if (message.content.toLowerCase() === '!bulk-update' && message.author.id === client.application?.owner.id) {
-    const data = [
-//?                 Mettres toute la data des commandes
-
-    ]
-
-		// const commands = await client.application?.commands.set(data);
-    const command = await client.guilds.cache
-    .get("963209263688327190")
-    ?.commands.set(data);
-	}
-});
-*/ //! PERMISSIONS FOR CLEAR
-client.on("messageCreate", async (message) => {
-  if (!client.application?.owner) await client.application?.fetch();
-
-  if (
-    message.content.toLowerCase() === "!perms" &&
-    message.author.id === client.application?.owner.id
-  ) {
-    const command = await client.guilds.cache
-      .get("929774859523879002")
-      ?.commands.fetch("965929520668483669");
-
-    const permissions = [
-      {
-        id: "929835101175566367", //? Ruby Niakra
-        type: "ROLE",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "929835330335547393", //? Pablo & manuel
-        type: "ROLE",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "494079726470823936", //? moi
-        type: "USER",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "965696239616270366", //? NCT
-        type: "ROLE",
-        permission: false,
-        defaultPermission: false,
-      },
-      {
-        name: 'loop',
-        description: 'Mettre en boucle la musique en cours',
-      },
-    ];
-
-    await command.permissions.add({ permissions });
-    console.log(permissions);
-    fs.writeFile(
-      "slashcommandperms.json",
-      JSON.stringify(command),
-      function (err) {
-        if (err) throw err;
-        console.log("File is created successfully for slash command perms.");
-      }
-    );
-  }
-});
-client.on("messageCreate", async (message) => {
-  if (!client.application?.owner) await client.application?.fetch();
-
-  if (
-    message.content.toLowerCase() === "!perms2" &&
-    message.author.id === client.application?.owner.id
-  ) {
-    const command = await client.guilds.cache
-      .get("929774859523879002")
-      ?.commands.fetch("966102664582672424");
-
-    const permissions = [
-      {
-        id: "929835101175566367", //? Ruby Niakra
-        type: "ROLE",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "929835330335547393", //? Pablo & manuel
-        type: "ROLE",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "494079726470823936", //? moi
-        type: "USER",
-        permission: true,
-        defaultPermission: false,
-      },
-      {
-        id: "965696239616270366", //? NCT
-        type: "ROLE",
-        permission: false,
-        defaultPermission: false,
-      },
-      {
-        id: "965204850310783098", //? Coop team portugaise
-        type: "ROLE",
-        permission: false,
-        defaultPermission: false,
-      },
-    ];
-
-    await command.permissions.add({ permissions });
-    console.log(permissions);
-    fs.writeFile(
-      "slashcommandperms.json",
-      JSON.stringify(command),
-      function (err) {
-        if (err) throw err;
-        console.log("File is created successfully for slash command perms.");
-      }
-    );
-  }
 });
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
@@ -907,14 +219,16 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "weather") {
     const loca = interaction.options.getString("position");
+    let res;
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${loca}&appid=${config.weatherkey}&lang=fr&units=metric`;
     async function getWeather() {
       try {
         let response = await axios.get(url);
         return response.data;
       } catch (error) {
+        console.warn(error);
         return interaction.reply({
-          content: `⚠️ Une erreur est survenue lors de la recherche de la ville __**\`${loca}\`**__ ⚠️`,
+          content: `<:warning:973943398178373663> Une erreur est survenue lors de la recherche de la ville __**\`${loca}\`**__ <:warning:973943398178373663>`,
           ephemeral: true,
         });
       }
@@ -923,7 +237,6 @@ client.on("interactionCreate", async (interaction) => {
     console.log(
       `${interaction.user.username}#${interaction.user.discriminator} a effectué la commande /weather pour la ville "${loca}"`
     );
-    let res = await getWeather();
     const advname = res.name.replace(" ", "+");
 
     const embed = new MessageEmbed()
@@ -944,7 +257,7 @@ client.on("interactionCreate", async (interaction) => {
         ${Math.floor(res.main.temp_min)}°C\n
         **Maximum** :\n
         ${Math.floor(res.main.temp_max)}°C\n
-        **Ressentie** : \n
+        **Ressenti** : \n
         ${Math.floor(res.main.feels_like)}°C\n
         **🌥Météo**\n
         **Météo** : \n
@@ -954,17 +267,17 @@ client.on("interactionCreate", async (interaction) => {
         ${Math.floor(res.wind.speed)} KM/H\n
         **Angle du vent** : \n
         ${res.wind.deg}°\n
-        \n *Données fournies par [OpenWeatherMap](https://openweathermap.org/)*
         `
       )
       .setColor("#32a86b")
       .setTimestamp();
-    await interaction.reply({ embeds: [embed], ephemeral: false });
-    await interaction.followUp({
-      files: [
-        "https://cdn.discordapp.com/attachments/966300614093078578/966361155549401248/la-meteo-de-gulli.mp4",
-      ],
-    });
+    // await interaction.reply({
+    //   // files: [
+    //   //   "https://cdn.discordapp.com/attachments/966300614093078578/966361155549401248/la-meteo-de-gulli.mp4",
+    //   // ],
+    //   content: "https://www.youtube.com/watch?v=H-nnoTDofow",
+    // });
+    return interaction.reply({ embeds: [embed], ephemeral: false });
   }
 });
 client.on("interactionCreate", async (interaction) => {
@@ -1006,7 +319,14 @@ client.on("interactionCreate", async (interaction) => {
         { name: `Type de jeu`, value: `${res.info.gameMode}`, inline: true },
         {
           name: `Utilise EarlyAuth`,
-          value: `${res.info.useEarlyAuth}`,
+          value: `[${res.info.useEarlyAuth}](${res.info.earlyAuthUrl})`,
+          inline: true,
+        },
+        {
+          name: "Dernière Mise à jour",
+          value: `<t:${getUnix(res.info.lastUpdate)}> , <t:${getUnix(
+            res.info.lastUpdate
+          )}:R>`,
           inline: true,
         },
         { name: `Version`, value: `${res.info.version}`, inline: true },
@@ -1063,8 +383,7 @@ client.on("interactionCreate", async (interaction) => {
       .setImage(
         `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${url}&size=500x500`
       )
-      .setTimestamp()
-      .setFooter({ text: "QR Code généré via l'api goqr.me." });
+      .setTimestamp();
     //send the image to the user
     interaction.reply({
       embeds: [embed],
@@ -1076,6 +395,8 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "activity") {
     let activity = interaction.options.getString("jeu");
+    const user = interaction.options.getUser("utilisateur");
+    const user2 = interaction.options.getUser("secondutilisateur");
     // console.log(activity)
     // return interaction.reply({
     //   content:
@@ -1094,14 +415,30 @@ client.on("interactionCreate", async (interaction) => {
                 invite.code
               }) pour rejoindre l'activity **${capFL(
                 activity
-              )}**.\n\n ⚠️ *Ces applications sont toujours en **Bêta** et quelques bugs peuvent subsister -* *De préférence, attendez qu'un premier utilisateur ait chargé le jeu avant de le rejoindre*`
+              )}** dans le channel   [*<#${channel}>*](${
+                invite.code
+              }).\n\n <:warning:973943398178373663> *Ces applications sont toujours en **Bêta** et quelques bugs peuvent subsister -* *De préférence, attendez qu'un premier utilisateur ait chargé le jeu avant de le rejoindre. Si vous rencontrez quelconque bug, merci de contacter <@494079726470823936> par message privé.*`
             )
             .setColor("#32a86b")
             .setThumbnail(zizou);
-          return interaction.reply({
-            embeds: [embed],
-            ephemeral: false,
-          });
+          if (user && user2) {
+            return interaction.reply({
+              content: `<@${user.id}> | <@${user2.id}>`,
+              embeds: [embed],
+              ephemeral: false,
+            });
+          } else if (user) {
+            return interaction.reply({
+              content: `<@${user.id}>`,
+              embeds: [embed],
+              ephemeral: false,
+            });
+          } else {
+            return interaction.reply({
+              embeds: [embed],
+              ephemeral: false,
+            });
+          }
         });
     } else {
       await interaction.reply({
@@ -1170,6 +507,11 @@ client.on("interactionCreate", (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "clear") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     const number = interaction.options.getNumber("nombre");
     const embed = new MessageEmbed()
       .setTitle("Messages Supprimés")
@@ -1198,6 +540,11 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "send") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     const texte = interaction.options.getString("texte");
     const userguy = interaction.options.getMember("utilisateur");
     const direct = interaction.options.getBoolean("direct");
@@ -1354,9 +701,15 @@ client.on("messageCreate", async (message) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "play") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
-        content: "❌ | Vous n'êtes pas dans un salon vocal!",
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
         ephemeral: true,
       });
     if (
@@ -1365,7 +718,8 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const query = interaction.options.getString("nom-lien");
@@ -1401,7 +755,9 @@ client.on("interactionCreate", async (interaction) => {
 
     queue.play(track);
     const playembed = new MessageEmbed()
-      .setTitle(`Nouveau titre ajouté à la queue ♪`)
+      .setTitle(
+        `<:checkmark:973943432236122153> Nouveau titre ajouté à la queue ♪`
+      )
       .setDescription(
         `J'ai ajouté à la queue [**\`${track.title}\`**](${track.url})!\n\n`
       )
@@ -1427,6 +783,11 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "stop") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
         content: "Vous n'êtes pas dans un salon vocal!",
@@ -1438,7 +799,8 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const queue = player.getQueue(interaction.guild);
@@ -1457,6 +819,11 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "volume") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
         content: "Vous n'êtes pas dans un salon vocal!",
@@ -1468,20 +835,23 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const volumee = interaction.options.getNumber("volume");
     const queue = player.getQueue(interaction.guild);
     if (!queue)
       return await interaction.reply({
-        content: "❌ | Il n'y a pas de musique en cours !",
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
         ephemeral: true,
       });
     if (volumee > 100) {
       if (interaction.user.id !== "494079726470823936") {
         return await interaction.reply({
-          content: "❌ | Le volume doit être compris entre 0 et 100 !",
+          content:
+            "<:cross:973943482420977704> | Le volume doit être compris entre 0 et 100 !",
           ephemeral: true,
         });
       }
@@ -1496,6 +866,11 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "queue") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
         content: "Vous n'êtes pas dans un salon vocal!",
@@ -1507,13 +882,15 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const queue = player.getQueue(interaction.guild);
     if (!queue)
       return await interaction.reply({
-        content: "❌ | Il n'y a pas de musique en cours !",
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
         ephemeral: true,
       });
     const track = queue.nowPlaying();
@@ -1521,7 +898,9 @@ client.on("interactionCreate", async (interaction) => {
       .setTitle(`Queue du serveur ${interaction.guild.name}`)
       // .setDescription(`${queue.createProgressBar()}\nVoici la queue du serveur :\n\n${queue.map(x => `**${x.track.title}** - [Lien](${x.track.url})`).join("\n")}`)
       .setDescription(
-        `**Musique actuelle :** ${track}\n\n${queue.createProgressBar()}\n\n${queue}`
+        `**Musique actuelle :** [${track}](${
+          track.url
+        })\n\n${queue.createProgressBar()}\n\n${queue}`
       )
       .setFooter({
         text: `${interaction.user.username}#${interaction.user.discriminator}`,
@@ -1536,9 +915,15 @@ client.on("interactionCreate", async (interaction) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "skip") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
-        content: "❌ | Vous n'êtes pas dans un salon vocal!",
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
         ephemeral: true,
       });
     if (
@@ -1547,18 +932,20 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const queue = player.getQueue(interaction.guild);
     if (!queue)
       return await interaction.reply({
-        content: "❌ | Il n'y a pas de musique en cours !",
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
         ephemeral: true,
       });
     queue.skip();
     return await interaction.reply({
-      content: "⏭ | La musique a été skip !",
+      content: "<:skip:973944954810417222> | La musique a été skip !",
       ephemeral: false,
     });
   }
@@ -1567,9 +954,15 @@ let paused = false;
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "pause") {
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
     if (!interaction.member.voice.channelId)
       return await interaction.reply({
-        content: "❌ | Vous n'êtes pas dans un salon vocal!",
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
         ephemeral: true,
       });
     if (
@@ -1578,27 +971,29 @@ client.on("interactionCreate", async (interaction) => {
         interaction.guild.me.voice.channelId
     )
       return await interaction.reply({
-        content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
     const queue = player.getQueue(interaction.guild);
     if (!queue)
       return await interaction.reply({
-        content: "❌ | Il n'y a pas de musique en cours !",
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
         ephemeral: true,
       });
     if (paused === false) {
       queue.setPaused(true);
       paused = true;
       return await interaction.reply({
-        content: "⏸ | La musique a été mise en pause !",
+        content: "<:pause:979771588742377522> | La musique a été mise en pause !",
         ephemeral: false,
       });
     } else if (paused === true) {
       queue.setPaused(false);
       paused = false;
       return await interaction.reply({
-        content: "▶️ | La musique a été reprise !",
+        content: "<:resume:979771640994996295> | La musique a été reprise !",
         ephemeral: false,
       });
     }
@@ -1610,14 +1005,13 @@ client.on("interactionCreate", async (interaction) => {
     const weight = interaction.options.getNumber("poids");
     const height = interaction.options.getNumber("taille");
     let imc = weight / (height * height);
-    // imc = imc.toString().substring(4, )
     imc = (weight / ((height * height) / 10000)).toFixed(2);
     console.log(imc);
     const imcembed = new MessageEmbed()
       .setTitle(`IMC de ${interaction.user.username}`)
       .setDescription(
         `Voici votre IMC :\n\n **${imc}**\n\n __**Échelle**__ :\n\n **Moins de 18,5 :** Maigreur. Peut occasionner certains risques pour la santé.\n\n **Entre 18,5 et 25 :** Normal\n\n **Entre 25 et 30 :** Surpoids. Peut occasionner certains risques pour la santé.\n\n **Entre 30 et 35 :** Obésité modérée. Risque accru de développer certaines maladies\n\n **Entre 35 et 40 :** Obésité sévère\n\n **Plus de 40 :** Obésité morbide/massive.\n\n\n
-***⚠️Le calcul d'IMC  possède quelques failles.⚠️ \n\nL'IMC ne fait pas de distinction entre l'excès de graisse, de muscle ou de masse osseuse, et ne fournit aucune indication sur la répartition de la graisse entre les individus. Voici quelques exemples de la façon dont certaines variables peuvent influencer l'interprétation de l'IMC : \n\n• En moyenne, les personnes âgées ont tendance à avoir plus de graisse corporelle que les adultes plus jeunes pour un IMC équivalent. \n\n• En moyenne, les femmes ont une plus grande quantité de graisse corporelle totale que les hommes avec un IMC équivalent. \n\n• Les personnes musclées ou les athlètes très entraînés peuvent avoir un IMC élevé en raison de l'augmentation de leur masse musculaire.\n\n Pour plus d'informations, [voici un article pouvant vous aider](https://www.cdc.gov/obesity/downloads/bmiforpactitioners.pdf) ou [cette vidéo](https://www.youtube.com/watch?v=z_3S2_41_FE)***`
+***<:warning:973943398178373663>Le calcul d'IMC  possède quelques failles.<:warning:973943398178373663> \n\n*** __**Pour plus d'informations, merci d'aller voir [ce lien](https://github.com/sivelswhy/Zizou/wiki/IMC#le-calcul-dimc-poss%C3%A8de-quelques-failles)**__`
       )
       .setFooter({
         text: `${interaction.user.username}#${interaction.user.discriminator}`,
@@ -1703,7 +1097,7 @@ client.on("interactionCreate", async (interaction) => {
     // const queue = player.getQueue(interaction.guild);
     // if (chanson === null) {
     //   if(!queue) {
-    //     return await interaction.reply({ content: "❌ | Il n'y a pas de musique en cours que je puisse analyser!", ephemeral: true });
+    //     return await interaction.reply({ content: "<:cross:973943482420977704> | Il n'y a pas de musique en cours que je puisse analyser!", ephemeral: true });
     //   }
     //   const song = queue.nowPlaying()
 
@@ -1731,7 +1125,7 @@ client.on("interactionCreate", async (interaction) => {
     const msg = await interaction.channel.messages.fetch(interaction.targetId);
     // console.log(msg.content)
 
-    const embed = new MessageEmbed()
+    const savedembed = new MessageEmbed()
       .setTitle("<:bookmark:969251187159363694> Message sauvegardé")
       .setDescription(
         `J'ai sauvegardé le message suivant envoyé par ${msg.author}:\n\n\`${msg.content}\``
@@ -1739,7 +1133,7 @@ client.on("interactionCreate", async (interaction) => {
       .setColor("#82b597")
       .setTimestamp();
     if (msg.content === "") {
-      embed.setDescription(
+      savedembed.setDescription(
         `J'ai sauvegardé le message suivant envoyé par ${msg.author}:\n\n`
       );
     }
@@ -1749,20 +1143,20 @@ client.on("interactionCreate", async (interaction) => {
         msg.attachments.first().proxyURL.endsWith(".jpg") ||
         msg.attachments.first().proxyURL.endsWith(".jpeg")
       ) {
-        embed.setImage(msg.attachments.first().proxyURL);
-        embed.setDescription(
+        savedembed.setImage(msg.attachments.first().proxyURL);
+        savedembed.setDescription(
           `J'ai sauvegardé le message suivant envoyé par ${msg.author}:\n\n`
         );
       } else {
-        embed.setDescription(
+        savedembed.setDescription(
           `Le message qu'à envoyé ${msg.author} contient un/des fichier(s) non supporté(s).`
         );
       } /*else if(!msg.attachments.first().proxyURL.endsWith('.png') || !msg.attachments.first().proxyURL.endsWith('.jpg') || !msg.attachments.first().proxyURL.endsWith('.jpeg')) {
     interaction.followUp({attachments: [msg.attachments.first().proxyURL]})
   }*/
     }
-    await interaction.reply({ embeds: [embed], ephemeral: true });
-    await interaction.user.send({ embeds: [embed] });
+    await interaction.reply({ embeds: [savedembed], ephemeral: true });
+    await interaction.user.send({ embeds: [savedembed] });
   }
 });
 client.on("interactionCreate", async (interaction) => {
@@ -1782,9 +1176,9 @@ client.on("interactionCreate", async (interaction) => {
         { name: "Indentifiant", value: `${user.id}`, inline: true },
         {
           name: "Créé le",
-          value: `<t:${Math.floor(
-            user.createdTimestamp / 1000
-          )}:f> (<t:${Math.floor(user.createdTimestamp / 1000)}:R>)`,
+          value: `<t:${getUnix(user.createdAt)}:f> (<t:${getUnix(
+            user.createdAt
+          )}:R>)`,
           inline: true,
         },
         {
@@ -1798,9 +1192,9 @@ client.on("interactionCreate", async (interaction) => {
         },
         {
           name: "Rejoint le",
-          value: `<t:${Math.floor(
-            member.joinedTimestamp / 1000
-          )}:f> (<t:${Math.floor(member.joinedTimestamp / 1000)}:R>)`,
+          value: `<t:${getUnix(member.joinedTimestamp)}:f> (<t:${getUnix(
+            member.joinedTimestamp
+          )}:R>)`,
           inline: true,
         }
       )
@@ -1835,7 +1229,6 @@ client.on("voiceStateUpdate", async (user, oldState, newState) => {
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
   if (interaction.commandName === "news") {
-
     const country = interaction.options.getString("pays");
     async function getNews() {
       try {
@@ -1844,10 +1237,11 @@ client.on("interactionCreate", async (interaction) => {
         );
         return response.data;
       } catch (error) {
+        console.warn(error);
         return interaction.reply({
-          content: `⚠️ Une erreur est survenue lors de la recherche de la ville __**\`${loca}\`**__ ⚠️`,
+          content: `<:warning:973943398178373663> Une erreur est survenue lors de la recherche de la ville __**\`${loca}\`**__ <:warning:973943398178373663>`,
           ephemeral: true,
-          break : true
+          break: true,
         });
       }
     }
@@ -1884,90 +1278,716 @@ client.on("interactionCreate", async (interaction) => {
         inline: false,
       }
     );
+    const e = await translate("hola estoy haciendo esta prueba");
+    console.log(e);
     return await interaction.reply({ embeds: [newsembed], ephemeral: true });
   }
 });
-client.on('interactionCreate', async interaction => {
-if (!interaction.isCommand()) return;
-if (interaction.commandName === 'loop') {
-  const queue = player.getQueue(interaction.guild);
-  if (
-    interaction.guild.me.voice.channelId &&
-    interaction.member.voice.channelId !==
-      interaction.guild.me.voice.channelId
-  )
-    return await interaction.reply({
-      content: "❌ | Tu n'est pas dans le même salon vocal que le BOT !",
-      ephemeral: true,
-    });
-  if (!queue) return interaction.reply('⚠️ | Aucune musique n\'est en cours de lecture.');
-  queue.loop = !queue.loop;
-  return interaction.reply(`🔁 | La lecture en boucle est maintenant ${queue.loop ? 'activer' : 'désactiver'}`);
-}
-});
-client.on('interactionCreate', async interaction => {
-if (!interaction.isCommand()) return;
-if (interaction.commandName === 'pronote') {
-  const etablissement = interaction.options.getString('etablissement');
-  const username = interaction.options.getString('username');
-  const password = interaction.options.getString('password');
- savePronote(username, password, etablissement, interaction.user.id)
-}
-});
-client.on('interactionCreate', async interaction => {
-if (!interaction.isCommand()) return;
-if (interaction.commandName === 'wikipedia') {
-  const query = interaction.options.getString('recherche');
-  async function getWiki() {
-    try {
-      let response = await axios.get(
-        `https://fr.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exlimit=max&explaintext&exintro&titles=${query}&redirects=`
-      );
-      return response.data;
-    } catch (error) {
-      await interaction.reply({
-        content: `⚠️ Une erreur est survenue lors de la recherche du texte __**\`${query}\`**__ ⚠️`,
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "loop") {
+    const queue = player.getQueue(interaction.guild);
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
         ephemeral: true,
       });
-    }
+    if (!queue)
+      return interaction.reply(
+        "<:warning:973943398178373663> | Aucune musique n'est en cours de lecture."
+      );
+    queue.loop = !queue.loop;
+    return interaction.reply(
+      `🔁 | La lecture en boucle est maintenant ${
+        queue.loop ? "activer" : "désactiver"
+      }`
+    );
   }
+});;
+// client.on('interactionCreate', async interaction => {
+// if (!interaction.isCommand()) return;
+// if (interaction.commandName === 'wikipedia') {
+//   const query = interaction.options.getString('recherche');
+//   async function getWiki() {
+//     try {
+//       let response = await axios.get(
+//         `https://fr.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exlimit=max&explaintext&exintro&titles=${query}&redirects=`
+//       );
+//       return response.data;
+//     } catch (error) {
+//       console.warn(error)
+//       await interaction.reply({
+//         content: `<:warning:973943398178373663> Une erreur est survenue lors de la recherche du texte __**\`${query}\`**__ <:warning:973943398178373663>`,
+//         ephemeral: true,
+//       });
+//     }
+//   }
 
-  let res = await getWiki();
-  //check if the query is a page
-  if (res.query.pages[-1]) {
-    return interaction.reply({content: `⚠️ | La recherche \`${query}\` n\'a retourné aucun résultat.`, ephemeral: true});
-  };
-  const wikiEmbed = new MessageEmbed()
-  .setAuthor({name: `Wikipedia`, icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png'})
-  .setColor('#82b597')
-  .setDescription(`Résultat de la recherche : `)
-  console.log(res.query.pages)
-  
-    return interaction.reply({ embeds: [wikiEmbed], ephemeral: true });
-}
-});
-client.on('interactionCreate', interaction => {
-	if (!interaction.isAutocomplete()) return;
-  if(interaction.commandName === 'wikipedia') {
-    const focusedValue = interaction.options.getFocused(true)
-    
+//   let res = await getWiki();
+//   // if (res.query.pages[-1]) {
+//   //   return interaction.reply({content: `<:warning:973943398178373663> | La recherche \`${query}\` n\'a retourné aucun résultat.`, ephemeral: true});
+//   // };
+//   const titlee = res.query.pages[Object.keys(res.query.pages)[0]].title.replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20")
+//   const extracct = res.query.pages[Object.keys(res.query.pages)[0]].extract.replace("\n", "\n\n")
+//   const wikiEmbed = new MessageEmbed()
+//   .setAuthor({name: `Wikipedia`, icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png', url: `https://fr.wikipedia.org/wiki/${titlee}`})
+//   .setColor('#82b597')
+//   .setDescription(`Résultat de la recherche :\n\n${extracct} `)
+//   .setFooter({text: `${interaction.user.username}#${interaction.user.discriminator}`, icon_url: interaction.user.avatarURL()})
+//   .setTimestamp()
+//   if(res.query.pages[Object.keys(res.query.pages)[0]].extract === undefined) {
+//     wikiEmbed.setDescription(`Résultat de la recherche :\n\nAucun résultat trouvé.`)
+//   }
+//     return interaction.reply({ embeds: [wikiEmbed], ephemeral: true });
+// }
+// });
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isAutocomplete()) return;
+
+  if (interaction.commandName === "wikipedia") {
+    const focusedOption = interaction.options.getFocused(true);
+
     async function getWiki() {
       try {
         let response = await axios.get(
-          `https://fr.wikipedia.org/w/api.php?action=opensearch&limit=10&format=json&callback=portalOpensearchCallback&search=${focusedValue.value}`
+          `https://fr.wikipedia.org/w/api.php?action=opensearch&limit=15&format=json&search=${focusedOption.value}`
         );
+        resolve(response.data);
         return response.data;
       } catch (error) {
-        await interaction.reply({
-          content: `⚠️ Une erreur est survenue lors de la recherche du texte __**\`${query}\`**__ ⚠️`,
+        resolve("error");
+        console.warn(error);
+        console.log("CA MARCHE PAS");
+      }
+      let res = await getWiki();
+      try {
+        //  console.error(res[1][0])
+        const response = await interaction.respond({});
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+  }
+});
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "about") {
+    const aboutEmbed = new MessageEmbed()
+      .setTitle("A propos du bot")
+      .setDescription(
+        "Ce bot Discord est dévellopé par <@494079726470823936> depuis le <t:1649951862>. Pour un maximum de transparence envers nos utilisateur, ci-dessous, vous pourrez voir les différentes librairies utilisés par ce bot.\n Vous pouvez à présent supporter ce projet sur https://github.com/sivelswhy/Zizou\n\n__**Documentation :**__ https://github.com/sivelswhy/Zizou/wiki"
+      )
+      .addFields(
+        { name: "Discord.js", value: "https://discord.js.org/", inline: true },
+        {
+          name: "Météo",
+          value: "[Open Weather Map](https://openweathermap.org/)",
+          inline: true,
+        },
+        {
+          name: "News",
+          value: "[News API](https://newsapi.org/)",
+          inline: true,
+        },
+        {
+          name: "Wikipedia",
+          value: "[Wikipedia](https://wikipedia.org/)",
+          inline: true,
+        },
+        {
+          name: "Virus",
+          value : "[VirusTotal](https://www.virustotal.com/)",inline: true
+        },
+        { name: "QrCode", value: "[GoQR](https://goqr.me/)", inline: true },
+        { name: "Îcones", value: "[Icons8](https://icons8.com/) ou [Microsoft](https://microsoft.com)", inline: true },
+      )
+      .setFooter({
+        text: `${interaction.user.username}#${interaction.user.discriminator}`,
+        icon_url: interaction.user.avatarURL(),
+      })
+      .setTimestamp()
+      .setColor("#82b597");
+    return interaction.reply({ embeds: [aboutEmbed], ephemeral: true });
+  }
+});
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "valorant") {
+    const riotid = interaction.options.getString("riotid");
+    const tagline = interaction.options.getString("tagline");
+    if (tagline.length > 5 || tagline.length < 3)
+      return interaction.reply({
+        content: `<:warning:973943398178373663> | Le tagline est invalide. Celui-ci peut faire uniquement entre **3** et **5** caractères maximum.`,
+        ephemeral: true,
+      });
+    const url = `https://api.tracker.gg/api/v2/valorant/standard/profile/riot/sivels%239101`;
+    console.log(url);
+    const res = await axios(url, {
+      headers: {
+        "TRN-Api-Key": `${config["trn-api-key"]}`,
+      },
+    }).catch(function (error) {
+      if (error) {
+        return interaction.reply({
+          content: `<:warning:973943398178373663> | Une erreur est survenue lors de la recherche du joueur.`,
           ephemeral: true,
         });
       }
+      console.log(error.config);
+    });
+    console.log(res);
+    // fs.writeFileSync("valorant.json", JSON.stringify(res), function (err) {
+    //   if (err) throw err;
+    //   console.log("File is created successfully for slash commands data.");
+    // });
+  }
+});
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "virus") {
+    if (interaction.options.getSubcommand() === "ip") {
+      const ip = interaction.options.getString("ip");
+      const options = {
+        method: "GET",
+        url: `https://www.virustotal.com/api/v3/ip_addresses/${ip}`,
+        headers: {
+          Accept: `application/json`,
+          "x-apikey": `${config.virustotalkey}`,
+        },
+      };
+
+      const res = await axios.request(options).catch(function (error) {
+        if (error.status === 400) {
+          return interaction.reply({
+            content: `<:warning:973943398178373663> | L'adresse IP est invalide.`,
+            ephemeral: true,
+          });
+        } else {
+          console.error(error);
+          return interaction.reply({
+            content: `<:warning:973943398178373663> | Une erreur est survenue lors de l'analyse de l'adresse IP.`,
+            ephemeral: true,
+          });
+        }
+      });
+      if (!res) return;
+      await interaction.deferReply({ ephemeral: true });
+      const res2 = await axios(`http://ip-api.com/json/${ip}`).catch(function (error) {
+        console.log('error on the second request')
+      });
+      if (!res2) return;
+      const virusembed = new MessageEmbed()
+        .setTitle(`Analyse de l'adresse IP : ${ip}`)
+        .setColor("#82b597")
+        .addFields(
+          {
+            name: "<:screen:973943778782089216> Statistiques Visuels",
+            value: `[Allez sur VirusTotal](https://www.virustotal.com/gui/ip-address/${ip})`,
+          },
+          {
+            name: "Localisation de l'adresse IP",
+            value: `[:flag_${lowerCases(res.data.data.attributes.country)}:, ${res2.data.city}, ${res2.data.regionName}](https://www.google.com/maps/search/${res2.data.lat},${res2.data.lon})`,
+            inline: true,
+          },
+          {
+            name: "<:motherboard:979769925868601354> Propriétaire de l'adresse IP",
+            value: `${res2.data.isp}`,
+            inline: true,
+          },
+          {
+            name: "Résultats des analyses",
+            value: `<:admin:973943453731913779> Inoffensif : ${res.data.data.attributes.last_analysis_stats.harmless}\n<:dangerous:979703024211623938> Mal intentionné : ${res.data.data.attributes.last_analysis_stats.malicious}\n<:loupe:979703622185148507> Suspicieux : ${res.data.data.attributes.last_analysis_stats.suspicious}\n   <:unknown:979702989713444894> Non detecté : ${res.data.data.attributes.last_analysis_stats.undetected}`,
+          }
+        )
+        .setFooter({
+          text: `Analayse de l'adresse IP "${ip}" , Ces données sont à but informatives ! Nous ne concevons en aucun cas les actions illégales effectués avec ces données !`,
+          icon_url: interaction.user.avatarURL(),
+        });
+      const row = new MessageActionRow().addComponents(
+        new MessageButton()
+          .setCustomId("ip")
+          .setLabel("Stats Avancés")
+          .setStyle("PRIMARY")
+          .setEmoji("<:process:979735518126419968>")
+      );
+      await interaction.followUp({
+        embeds: [virusembed],
+        ephemeral: true,
+        components: [row],
+      });
+      const filter = (i) => i.customId === "ip";
+      const collector = interaction.channel.createMessageComponentCollector({
+        filter,
+        time: 180000,
+      });
+      const morestatsembed = new MessageEmbed()
+        .setTitle(`Analyse avancée de l'adresse IP : ${ip}`)
+        .addFields(
+          {
+            name: "CMC Threat Intelligence",
+            value: `${res.data.data.attributes.last_analysis_results["CMC Threat Intelligence"].result}`,
+            inline: true,
+          },
+          {
+            name: "Snort IP sample list",
+            value: `${res.data.data.attributes.last_analysis_results["Snort IP sample list"].result}`,
+            inline: true,
+          },
+          {
+            name: "0xSI_f33d",
+            value: `${res.data.data.attributes.last_analysis_results["0xSI_f33d"].result}`,
+            inline: true,
+          },
+          {
+            name: "Armis",
+            value: `${res.data.data.attributes.last_analysis_results["Armis"].result}`,
+            inline: true,
+          },
+          {
+            name: "ViriBack",
+            value: `${res.data.data.attributes.last_analysis_results["ViriBack"].result}`,
+            inline: true,
+          },
+          {
+            name: "Comodo Valkyrie Verdict",
+            value: `${res.data.data.attributes.last_analysis_results["Comodo Valkyrie Verdict"].result}`,
+            inline: true,
+          },
+          {
+            name: "PhishLabs",
+            value: `${res.data.data.attributes.last_analysis_results["PhishLabs"].result}`,
+            inline: true,
+          },
+          {
+            name: "K7AntiVirus",
+            value: `${res.data.data.attributes.last_analysis_results["K7AntiVirus"].result}`,
+            inline: true,
+          },
+          {
+            name: "CINS Army",
+            value: `${res.data.data.attributes.last_analysis_results["CINS Army"].result}`,
+            inline: true,
+          },
+          {
+            name: "Quttera",
+            value: `${res.data.data.attributes.last_analysis_results["Quttera"].result}`,
+            inline: true,
+          },
+          {
+            name: "OpenPhish",
+            value: `${res.data.data.attributes.last_analysis_results["OpenPhish"].result}`,
+            inline: true,
+          },
+          {
+            name: "VX Vault",
+            value: `${res.data.data.attributes.last_analysis_results["VX Vault"].result}`,
+            inline: true,
+          },
+          {
+            name: "Web Security Guard",
+            value: `${res.data.data.attributes.last_analysis_results["Web Security Guard"].result}`,
+            inline: true,
+          },
+          {
+            name: "Scantitan",
+            value: `${res.data.data.attributes.last_analysis_results["Scantitan"].result}`,
+            inline: true,
+          },
+          {
+            name: "Scantitan",
+            value: `${res.data.data.attributes.last_analysis_results["Scantitan"].result}`,
+            inline: true,
+          },
+          {
+            name: "Sophos",
+            value: `${res.data.data.attributes.last_analysis_results["Sophos"].result}`,
+            inline: true,
+          },
+          {
+            name: "Phishtank",
+            value: `${res.data.data.attributes.last_analysis_results["Phishtank"].result}`,
+            inline: true,
+          },
+          {
+            name: "EonScope",
+            value: `${res.data.data.attributes.last_analysis_results["EonScope"].result}`,
+            inline: true,
+          },
+          {
+            name: "Cyan",
+            value: `${res.data.data.attributes.last_analysis_results["Cyan"].result}`,
+            inline: true,
+          },
+          {
+            name: "Spam404",
+            value: `${res.data.data.attributes.last_analysis_results["Spam404"].result}`,
+            inline: true,
+          },
+          {
+            name: "SecureBrain",
+            value: `${res.data.data.attributes.last_analysis_results["SecureBrain"].result}`,
+            inline: true,
+          },
+          {
+            name: "Hoplite Industries",
+            value: `${res.data.data.attributes.last_analysis_results["Hoplite Industries"].result}`,
+            inline: true,
+          },
+          {
+            name: "CRDF",
+            value: `${res.data.data.attributes.last_analysis_results["CRDF"].result}`,
+            inline: true,
+          },
+          {
+            name: "Fortinet",
+            value: `${res.data.data.attributes.last_analysis_results["Fortinet"].result}`,
+            inline: true,
+          },
+          {
+            name: "alphaMountain.ai",
+            value: `${res.data.data.attributes.last_analysis_results["alphaMountain.ai"].result}`,
+            inline: true,
+          },
+        )
+      .setColor("#82b597");
+        const secondembed = new MessageEmbed()
+.addFields(
+  {
+    name: "Lionic",
+    value: `${res.data.data.attributes.last_analysis_results["Lionic"].result}`,
+    inline: true,
+  },
+  {
+    name: "Virusdie External Site Scan",
+    value: `${res.data.data.attributes.last_analysis_results["Virusdie External Site Scan"].result}`,
+    inline: true,
+  },
+  {
+    name: "Google Safebrowsing",
+    value: `${res.data.data.attributes.last_analysis_results["Google Safebrowsing"].result}`,
+    inline: true,
+  },
+  {
+    name: "SafeToOpen",
+    value: `${res.data.data.attributes.last_analysis_results["SafeToOpen"].result}`,
+    inline: true,
+  },
+  {
+    name: "ADMINUSLabs",
+    value: `${res.data.data.attributes.last_analysis_results["ADMINUSLabs"].result}`,
+    inline: true,
+  },
+  {
+    name: "CyberCrime",
+    value: `${res.data.data.attributes.last_analysis_results["CyberCrime"].result}`,
+    inline: true,
+  },
+  {
+    name: "Heimdal Security",
+    value: `${res.data.data.attributes.last_analysis_results["Heimdal Security"].result}`,
+    inline: true,
+  },
+  {
+    name: "AutoShun",
+    value: `${res.data.data.attributes.last_analysis_results["AutoShun"].result}`,
+    inline: true,
+  },
+  {
+    name: "Trustwave",
+    value: `${res.data.data.attributes.last_analysis_results["Trustwave"].result}`,
+    inline: true,
+  },
+  {
+    name: "AICC (MONITORAPP)",
+    value: `${res.data.data.attributes.last_analysis_results["AICC (MONITORAPP)"].result}`,
+    inline: true,
+  },
+  {
+    name: "CyRadar",
+    value: `${res.data.data.attributes.last_analysis_results["CyRadar"].result}`,
+    inline: true,
+  },
+  {
+    name: "Dr.Web",
+    value: `${res.data.data.attributes.last_analysis_results["Dr.Web"].result}`,
+    inline: true,
+  },
+  {
+    name: "Emsisoft",
+    value: `${res.data.data.attributes.last_analysis_results["Emsisoft"].result}`,
+    inline: true,
+  },
+  {
+    name: "Abusix",
+    value: `${res.data.data.attributes.last_analysis_results["Abusix"].result}`,
+    inline: true,
+  },
+  {
+    name: "Webroot",
+    value: `${res.data.data.attributes.last_analysis_results["Webroot"].result}`,
+    inline: true,
+  },
+  {
+    name: "Avira",
+    value: `${res.data.data.attributes.last_analysis_results["Avira"].result}`,
+    inline: true,
+  },
+  {
+    name: "securolytics",
+    value: `${res.data.data.attributes.last_analysis_results["securolytics"].result}`,
+    inline: true,
+  },
+  {
+    name: "Acronis",
+    value: `${res.data.data.attributes.last_analysis_results["Acronis"].result}`,
+    inline: true,
+  },
+  {
+    name: "Quick Heal",
+    value: `${res.data.data.attributes.last_analysis_results["Quick Heal"].result}`,
+    inline: true,
+  },
+  {
+    name: "ESTsecurity-Threat Inside",
+    value: `${res.data.data.attributes.last_analysis_results["ESTsecurity-Threat Inside"].result}`,
+    inline: true,
+  },
+  {
+    name: "Viettel Threat Intelligence",
+    value: `${res.data.data.attributes.last_analysis_results["Viettel Threat Intelligence"].result}`,
+    inline: true,
+  },
+  {
+    name: "DNS8",
+    value: `${res.data.data.attributes.last_analysis_results["DNS8"].result}`,
+    inline: true,
+  },
+  {
+    name: "benkow.cc",
+    value: `${res.data.data.attributes.last_analysis_results["benkow.cc"].result}`,
+    inline: true,
+  },
+  {
+    name: "EmergingThreats",
+    value: `${res.data.data.attributes.last_analysis_results["EmergingThreats"].result}`,
+    inline: true,
+  },
+  {
+    name: "Chong Lua Dao",
+    value: `${res.data.data.attributes.last_analysis_results["Chong Lua Dao"].result}`,
+    inline: true,
+  },
+)
+.setColor("#82b597");
+const thirdembed = new MessageEmbed()
+.addFields(
+  {
+    name: "Yandex Safebrowsing",
+    value: `${res.data.data.attributes.last_analysis_results["Yandex Safebrowsing"].result}`,
+    inline: true,
+  },
+  {
+    name: "MalwareDomainList",
+    value: `${res.data.data.attributes.last_analysis_results["MalwareDomainList"].result}`,
+    inline: true,
+  },
+  {
+    name: "Lumu",
+    value: `${res.data.data.attributes.last_analysis_results["Lumu"].result}`,
+    inline: true,
+  },
+  {
+    name: "zvelo",
+    value: `${res.data.data.attributes.last_analysis_results["zvelo"].result}`,
+    inline: true,
+  },
+  {
+    name: "Kaspersky",
+    value: `${res.data.data.attributes.last_analysis_results["Kaspersky"].result}`,
+    inline: true,
+  },
+  {
+    name: "Segasec",
+    value: `${res.data.data.attributes.last_analysis_results["Segasec"].result}`,
+    inline: true,
+  },
+  {
+    name: "Sucuri SiteCheck",
+    value: `${res.data.data.attributes.last_analysis_results["Sucuri SiteCheck"].result}`,
+    inline: true,
+  },
+  {
+    name: "desenmascara.me",
+    value: `${res.data.data.attributes.last_analysis_results["desenmascara.me"].result}`,
+    inline: true,
+  },
+  {
+    name: "URLhaus",
+    value: `${res.data.data.attributes.last_analysis_results["URLhaus"].result}`,
+    inline: true,
+  },
+  {
+    name: "PREBYTES",
+    value: `${res.data.data.attributes.last_analysis_results["PREBYTES"].result}`,
+    inline: true,
+  },
+  {
+    name: "StopForumSpam",
+    value: `${res.data.data.attributes.last_analysis_results["StopForumSpam"].result}`,
+    inline: true,
+  },
+  {
+    name: "Blueliv",
+    value: `${res.data.data.attributes.last_analysis_results["Blueliv"].result}`,
+    inline: true,
+  },
+  {
+    name: "Netcraft",
+    value: `${res.data.data.attributes.last_analysis_results["Netcraft"].result}`,
+    inline: true,
+  },
+  {
+    name: "ZeroCERT",
+    value: `${res.data.data.attributes.last_analysis_results["ZeroCERT"].result}`,
+    inline: true,
+  },
+  {
+    name: "Phishing Database",
+    value: `${res.data.data.attributes.last_analysis_results["Phishing Database"].result}`,
+    inline: true,
+  },
+  {
+    name: "MalwarePatrol",
+    value: `${res.data.data.attributes.last_analysis_results["MalwarePatrol"].result}`,
+    inline: true,
+  },
+  {
+    name: "MalBeacon",
+    value: `${res.data.data.attributes.last_analysis_results["MalBeacon"].result}`,
+    inline: true,
+  },
+  {
+    name: "IPsum",
+    value: `${res.data.data.attributes.last_analysis_results["IPsum"].result}`,
+    inline: true,
+  },
+  {
+    name: "Malwared",
+    value: `${res.data.data.attributes.last_analysis_results["Malwared"].result}`,
+    inline: true,
+  },
+  {
+    name: "BitDefender",
+    value: `${res.data.data.attributes.last_analysis_results["BitDefender"].result}`,
+    inline: true,
+  },
+  {
+    name: "GreenSnow",
+    value: `${res.data.data.attributes.last_analysis_results["GreenSnow"].result}`,
+    inline: true,
+  },
+  {
+    name: "G-Data",
+    value: `${res.data.data.attributes.last_analysis_results["G-Data"].result}`,
+    inline: true,
+  },
+  {
+    name: "StopBadware",
+    value: `${res.data.data.attributes.last_analysis_results["StopBadware"].result}`,
+    inline: true,
+  },
+  {
+    name: "SCUMWARE.org",
+    value: `${res.data.data.attributes.last_analysis_results["SCUMWARE.org"].result}`,
+    inline: true,
+  },
+  {
+    name: "malwares.com URL checker",
+    value: `${res.data.data.attributes.last_analysis_results["malwares.com URL checker"].result}`,
+    inline: true,
+  },
+)
+.setColor("#82b597");
+const fourthembed = new MessageEmbed()
+.addFields(
+  {
+    name: "NotMining",
+    value: `${res.data.data.attributes.last_analysis_results["NotMining"].result}`,
+    inline: true,
+  },
+  {
+    name: "Forcepoint ThreatSeeker",
+    value: `${res.data.data.attributes.last_analysis_results["Forcepoint ThreatSeeker"].result}`,
+    inline: true,
+  },
+  {
+    name: "Certego",
+    value: `${res.data.data.attributes.last_analysis_results["Certego"].result}`,
+    inline: true,
+  },
+  {
+    name: "ESET",
+    value: `${res.data.data.attributes.last_analysis_results["ESET"].result}`,
+    inline: true,
+  },
+  {
+    name: "Threatsourcing",
+    value: `${res.data.data.attributes.last_analysis_results["Threatsourcing"].result}`,
+    inline: true,
+  },
+  {
+    name: "MalSilo",
+    value: `${res.data.data.attributes.last_analysis_results["MalSilo"].result}`,
+    inline: true,
+  },
+  {
+    name: "Nucleon",
+    value: `${res.data.data.attributes.last_analysis_results["Nucleon"].result}`,
+    inline: true,
+  },
+  {
+    name: "BADWARE.INFO",
+    value: `${res.data.data.attributes.last_analysis_results["BADWARE.INFO"].result}`,
+    inline: true,
+  },
+  {
+    name: "ThreatHive",
+    value: `${res.data.data.attributes.last_analysis_results["ThreatHive"].result}`,
+    inline: true,
+  },
+  {
+    name: "FraudScore",
+    value: `${res.data.data.attributes.last_analysis_results["FraudScore"].result}`,
+    inline: true,
+  },
+  {
+    name: "Tencent",
+    value: `${res.data.data.attributes.last_analysis_results["Tencent"].result}`,
+    inline: true,
+  },
+  {
+    name: "Bfore.Ai PreCrime",
+    value: `${res.data.data.attributes.last_analysis_results["Bfore.Ai PreCrime"].result}`,
+    inline: true,
+  },
+  {
+    name: "Baidu-International",
+    value: `${res.data.data.attributes.last_analysis_results["Baidu-International"].result}`,
+    inline: true,
+  },
+)
+.setColor("#82b597");
+      collector.on("collect", async (i) => {
+        if (i.customId === "ip") {
+          await i.update({ components: [], embeds: [morestatsembed, secondembed, thirdembed, fourthembed] });
+        }
+      });
     }
-  
-    let res = await getWiki();
-    console.log(res)
-    // const response = await interaction.respond(choices)
   }
 });
 client.login(config.token);

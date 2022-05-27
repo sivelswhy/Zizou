@@ -105,7 +105,9 @@ dist
 
 
 # Other
-
-config.json
+src/data/db.json
+src/data/config.json
+src/deploy.js
 slashcommandperms.json
 slashcommands.json
+source.js
