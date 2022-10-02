@@ -1,0 +1,209 @@
+{
+    "commands" : {
+        "wikipedia": {
+            "name":"wikipedia",
+            "description":"Vous permet de rechercher quelque chose sur wikipedia",
+            "options" : {
+                "search" : {
+                    "name": "recherche",
+                    "description": "La chose que vous voulez recherche sur wikipédia"
+                }
+            }
+        },
+        "route" : {
+            "name" : "trajet",
+            "description" : "Avoir les horaires de bus et autres transports en fonction d'une région",
+            "normandy" : {
+                "name" : "normandie",
+                "description": "🚌 Les horaires de bus de normandie du groupe **NOMAD**",
+                "options": {
+                    "start": {
+                        "name": "depart",
+                        "description": "Station de départ"
+                    },
+                    "end": {
+                        "name": "arrivee",
+                        "description": "Station D'arrivée"
+                    }
+                }
+            }
+        },
+        "image": {
+            "name": "image",
+            "upload" : {
+                "name": "upload",
+                "description": "Upload une image sur internet",
+                "options": {
+                    "image": {
+                        "name": "image",
+                        "description": "L'image que vous souhaitez upload."
+                    }
+                }
+            }
+        },
+        "support" :{
+            "name": "support",
+            "description": "Contacter le support du BOT, pour soumettre un bug par exemple"
+        },
+        "headOrTail" : {
+            "name": "pileouface",
+            "description": "Faites un pile ou face depuis Discord",
+            "options": {
+                "mention" : {
+                    "name": "mention",
+                    "description": "Mentionnez quelqu'un de ce pile ou face"
+                }
+            }
+        },
+        "info" : {
+            "name":"info",
+            "description": "Vous permet d'avoir des informations sur diverses sujets.",
+            "bot" : {
+                "name" : "bot",
+                "description": "Vous permet d'avoir des informations sur le BOT."
+            }
+        },
+        "random" : {
+            "name": "random",
+            "description": "Générer quelque chose aléatoirement",
+            "face" : {
+                "name" : "visage",
+                "description" : "Générer via une intelligence artificielle un visage."
+            },
+            "meme" : {
+                "name": "meme",
+                "description": "Générer un meme ! ⚠️ EN ANGLAIS ⚠️"
+            }
+        },
+        "virus" : {
+            "name": "virus",
+            "description": "Vérifier si quelque chose est un virus.",
+            "ip" :{
+                "name": "ip",
+                "description": "Vérifier si une adresse IP est malveillante.",
+                "options" : {
+                    "ip" : {
+                        "name": "ip",
+                        "description": "L'ip que vous souhaitez scanner"
+                    }
+                }
+            }
+        },
+        "play" : {
+            "name" : "play",
+            "description": "Jouer une musique",
+            "options" : {
+                "nameLink" : {
+                    "name": "nom-lien",
+                    "description": "Nom ou Lien de la musique"
+                }
+            }
+        },
+        "8ball" : {
+            "name" : "8ball",
+            "description" : "Pose une question et attend une réponse 🤫",
+            "options": {
+                "question" : {
+                    "name": "question",
+                    "description" : "Question que vous souhaiter poster"
+                }
+            }
+        },
+        "bmi" : {
+            "name" : "imc",
+            "description": "Calculer votre IMC depuis Discord",
+            "options" : {
+                "height" : {
+                    "name": "taile",
+                    "description" : "Votre taille en CENTIMETRES"
+                },
+                "weight" : {
+                    "name": "poids",
+                    "description" : "Votre poids en KiloGrammes"
+                }
+            }
+        },
+        "skip" : {
+            "name" : "skip",
+            "description": "Passer la musique en cours"
+        },
+        "pause" : {
+            "name": "pause",
+            "description": "Passer la musique en cours"
+        },
+        "volume" : {
+            "name": "volume",
+            "description": "Choisir le volume de la musique",
+            "options" : {
+                "volume" : {
+                    "name": "volume",
+                    "description": "Le montant du volume"
+                }
+            }
+        },
+        "stop" : {
+            "name": "stop",
+            "description": "Stopper la musique en cours"
+        },
+        "queue" : {
+            "name": "queue",
+            "description": "Avoir les musiques dans la queue"
+        },
+        "qrcode" : {
+            "name": "qrcode",
+            "description": "Créer un qrcode depuis Discord !",
+            "options" : {
+                "url" : {
+                    "name": "url",
+                    "description": "URL du lien que vous souhaitez insérer dans le QRCode."
+                }
+            }
+        },
+        "os" : {
+            "name": "os",
+            "description": "Ayez les infos du bot, comme son ping"
+        },
+        "activity" : {
+            "name" : "activity",
+            "description": "Jouez à des jeux, mais depuis discord",
+            "options" : {
+                "games" : {
+                    "name": "jeu",
+                    "description": "Jeu auquel vous souhaitez jouer"
+                },
+                "user" : {
+                    "name": "utilisateur",
+                    "description": "Utilisateur à mentionner pour l'activité"
+                },
+                "secondUser" : {
+                    "name": "secondutilisateur",
+                    "description": "Second utilisateur à mentionner pour l'activité"
+                }
+            }
+        },
+        "weather" : {
+            "name": "meteo",
+            "description": "Avoir la météo d'une ville ou d'un pays",
+            "options" : {
+                "name": "position",
+                "description": "La ville ou le pays d'où vous souhaitez obtenir la météo"
+            }
+        },
+        "news" : {
+            "name": "news",
+            "description": "Afficher les dernières news",
+            "options" : {
+                "country" : {
+                    "name": "pays",
+                    "description": "Les news du pays que vous souhaitez avoir ⚠️(les news seront affichés dans la langue de ce pays)⚠️",
+                    "choices" : {
+                        "france": "France",
+                        "unitesStates": "États-Unis",
+                        "ukraine" : "Ukraine",
+                        "italia" : "Italie"
+                    }
+                }
+            }
+        }
+    }
+}
