@@ -13,7 +13,27 @@
     "route": {
       "name": "route",
       "description": "Have the schedules of buses and other transports according to a region",
-      "normandy": {}
+      "normandy": {
+        "name" : "normandy",
+        "description": "🚌 Normandy bus schedules for the **NOMAD** group",
+        "options" : {
+            "start" : {
+                "name": "start",
+                "description": "Starting Station"
+            },
+            "end" : {
+                "name" : "end",
+                "description": "Ending Station"
+            }
+        }
+      }
+    },
+    "image" : {
+        "name" : "image",
+        "description" : "All commands related to images",
+        "options" : {
+            
+        }
     }
   }
 }
