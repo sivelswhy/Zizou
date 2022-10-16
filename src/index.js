@@ -1,46 +1,27 @@
 const {
   Client,
-  ModalBuilder,
-  GatewayIntentBits,
-  EmbedBuilder,
-  AttachmentBuilder,
-  Partials,
-  ActionRowBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ButtonBuilder,
-  ChannelType,
-  ActivityType,
-  Time,
+  GuildManager,
+  MessageEmbed,
+  MessageActionRow,
+  MessageButton,
+  InteractionWebhook,
+  Guild,
+  VoiceState,
+  Modal,
+  TextInputComponent,
   SnowflakeUtil,
 } = require("discord.js");
 const io = require("@pm2/io");
 const client = new Client({
   intents: [
-    [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-      GatewayIntentBits.GuildVoiceStates,
-      GatewayIntentBits.DirectMessages,
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildBans,
-    ],
+    "GUILDS",
+    "GUILD_MESSAGES",
+    "GUILD_VOICE_STATES",
+    "DIRECT_MESSAGES",
+    "GUILD_MEMBERS",
+    "GUILD_BANS",
   ],
-  partials: [
-    Partials.Message,
-    Partials.Channel,
-    Partials.Reaction,
-    Partials.User,
-  ],
-  /*ws: {
-    large_threshold: 250,
-    compress: require('os').platform() !== 'browser',
-    properties: {
-      os:''
-    },
-    version: 6,
-  },*/
+  partials: ["MESSAGE", "CHANNEL", "REACTION", "USER"],
 });
 
 // const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -57,23 +38,17 @@ const axios = require("axios");
 
 const os = require("os");
 
-// const { Player } = require("discord-player");
+const { Player } = require("discord-player");
 
-// const player = new Player(client, { initialVolume: 20, languages: ["fr-FR"] });
+const player = new Player(client, { initialVolume: 20, languages: ["fr-FR"] });
 
 const config = require("./data/config.json");
-const { StreamDescription } = require("mongodb");
-const { time } = require("console");
 
-// const { DiscordTogether } = require("discord-together");
+const { DiscordTogether } = require("discord-together");
 
 const cloudinary = require("cloudinary").v2;
 
-// const { TwitterClient } = require('twitter-api-sdk')
-
-// const tclient = new TwitterClient(config.twitter_bearer_token)
-
-// client.discordTogether = new DiscordTogether(client);
+client.discordTogether = new DiscordTogether(client);
 let nameembed;
 function getUnix(string) {
   return Math.floor(string / 1000);
@@ -138,7 +113,6 @@ const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
 client.on("ready", async () => {
   //*ready
   console.clear();
-
   console.log(
     "--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\n--------------\nBot BLOODS online !"
   );
@@ -152,13 +126,38 @@ client.on("ready", async () => {
   //   type: "PLAYING",
   //   url: "https://www.twitch.tv/sivelsdev",
   // });
-  client.user.setActivity("BUG/HELP -> /support", ActivityType.Playing);
-
-  const channel = client.channels.cache.get("1023349364376219738");
-  // const response = await tclient.tweets.findTweetsById();
-  // console.log("response", JSON.stringify(response, null, 2));
+  client.user.setActivity("HELP -> /support", {
+    type: "PLAYING",
+    url: "https://www.twitch.tv/sivelsdev",
+  });
 });
 
+// tracker.on('guildMemberAdd', (member, type, invite) => {
+
+//   const welcomeChannel = member.guild.channels.cache.find((ch) => ch.name === 'invite');
+
+//   if(type === 'normal'){
+//       welcomeChannel.send(`**${member}** est arrivé en utilisant l'invite spéciale de **${invite.inviter.username}** !`);
+//   }
+
+//   else if(type === 'vanity'){
+//       welcomeChannel.send(`**${member}** est arrivé en utilisant une invite spéciale !`);
+//   }
+
+//   else if(type === 'permissions'){
+//       welcomeChannel.send(`Welcome ${member}! I can't figure out how you joined because I don't have the "Manage Server" permission!`);
+//   }
+
+//   else if(type === 'unknown'){
+//       welcomeChannel.send(` Je n'arrive pas à savoir la provennace de **${member}** !`);
+//   }
+
+// });
+// distube.on("error", (channel, error) => {
+//   const user = "494079726470823936";
+//   console.error(error);
+//   // channel.send(`An error encoutered: ${error.slice(0, 1979)}`) // Discord limits 2000 characters in a message
+// });
 const realtimeLatency = io.metric({
   name: "Latence",
   unit: "ms",
@@ -176,7 +175,7 @@ setInterval(() => {
   realtimeGuilds.set(client.guilds.cache.size);
 }, 600000);
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
 
   if (interaction.commandName === "os") {
     console.log(
@@ -229,7 +228,7 @@ client.on("interactionCreate", async (interaction) => {
     // get the operating system cpu usage
     var osCpuUsage = os.cpus()[0].times.user;
 
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle("Infos Du BOT")
       .addFields(
         {
@@ -297,7 +296,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "weather") {
     await interaction.deferReply();
     const loca = interaction.options.getString("position");
@@ -318,7 +317,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!res) return;
     const advname = res.name.replace(" ", "+");
 
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle(`Infos à propos de ${res.name}`)
       .setThumbnail(
         `http://openweathermap.org/img/w/${res.weather[0].icon}.png`
@@ -355,7 +354,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "infoserv") {
     //make an axios get request to https://api.altv.mp/server/ead39764c0f15eca53197d380b59605f and retrieve the data
     const url = `https://api.altv.mp/server/ead39764c0f15eca53197d380b59605f`;
@@ -365,7 +364,7 @@ client.on("interactionCreate", async (interaction) => {
       return response.data;
     }
     let res = await getAltv();
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle("Infos Du serveur")
       .addFields(
         { name: "Nom", value: `${res.info.name}`, inline: true },
@@ -425,7 +424,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "roll") {
     const foo = Math.random() * 100;
     const foo2 = Math.trunc(foo);
@@ -448,7 +447,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "qrcode") {
     let url = interaction.options.getString("url");
     if (!url.startsWith("https://" || !url.startsWith("http://"))) {
@@ -457,7 +456,7 @@ client.on("interactionCreate", async (interaction) => {
     //make an axios get request to the qr server
     // const data = await axios(`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${url}&size=500x500`);
     //put the qr code in a message embed
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle(`QRCode de ${url}`)
       .setColor("#32a86b")
       .setImage(
@@ -471,11 +470,11 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "activity") {
-    let activity = interaction.options.getString("game");
-    const user = interaction.options.getUser("user");
-    const user2 = interaction.options.getUser("seconduser");
+    let activity = interaction.options.getString("jeu");
+    const user = interaction.options.getUser("utilisateur");
+    const user2 = interaction.options.getUser("secondutilisateur");
     // console.log(activity)
     // return interaction.reply({
     //   content:
@@ -487,7 +486,7 @@ client.on("interactionCreate", async (interaction) => {
       client.discordTogether
         .createTogetherCode(channel, activity)
         .then(async (invite) => {
-          const embed = new EmbedBuilder()
+          const embed = new MessageEmbed()
             .setTitle("Activity")
             .setDescription(
               `[\`🕹️Cliquez ici\`](${
@@ -500,10 +499,10 @@ client.on("interactionCreate", async (interaction) => {
             )
             .setColor("#32a86b")
             .setThumbnail(zizou);
-          const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
+          const row = new MessageActionRow().addComponents(
+            new MessageButton()
               .setLabel("rejoindre")
-              .setStyle("Link")
+              .setStyle("LINK")
               .setURL(`${invite.code}`)
               .setEmoji("🚪")
           );
@@ -544,7 +543,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "card") {
     let origine = interaction.options.getString("origine");
     let sexe = interaction.options.getString("sexe");
@@ -564,14 +563,14 @@ client.on("interactionCreate", async (interaction) => {
     }
     let res = await fetchName();
     const id = interaction.options.getNumber("id");
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
+    const row = new MessageActionRow().addComponents(
+      new MessageButton()
         .setCustomId("copymp")
         .setLabel("Copie en MP")
-        .setStyle("Primary")
+        .setStyle("PRIMARY")
         .setEmoji("📩")
     );
-    nameembed = new EmbedBuilder()
+    nameembed = new MessageEmbed()
       .setTitle(`Générateur de fausse carte d'identitée`)
       .setDescription(
         `**Permis de conduire :**\n${res.name}[${id}] Montre son permis de conduire.\n\n**Carte d'identité :**\n${res.name}[${id}] Montre sa carte d'identité.\n\n**Brevet de pilote :**\n${res.name}[${id}] Montre son brevet de pilote.\n\n**Permis de port d'arme lourdes :**\n${res.name}[${id}] Montre son permis de port d'arme lourdes.\n\n**Permis port d'arme :**\n${res.name}[${id}] Montre son permis de port d'arme.\n\n**Permis de bateau**\n${res.name}[${id}] Montre son permis bateau.`
@@ -600,16 +599,16 @@ client.on("interactionCreate", (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "clear") {
     await interaction.deferReply({ ephemeral: true });
-    if (interaction.channel.type === ChannelType.DM)
+    if (interaction.channel.type === "DM")
       return interaction.reply({
         content: "Vous ne pouvez pas utiliser cette commande en message privé!",
         ephemeral: true,
       });
     const number = interaction.options.getNumber("nombre");
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle("Messages Supprimés")
       .setColor("#82b597")
       .setTimestamp()
@@ -618,7 +617,7 @@ client.on("interactionCreate", async (interaction) => {
       limit: number,
     });
     messages.forEach((message) => message.delete());
-    const deleteEmbed = new EmbedBuilder()
+    const deleteEmbed = new MessageEmbed()
       .setTitle("Messages Supprimés")
       .setDescription(
         `J'ai supprimé \`${number}\` messages dans le channel <#${interaction.channelId}> sous l'ordre de <@${interaction.user.id}>. `
@@ -638,9 +637,9 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "send") {
-    if (interaction.channel.type === ChannelType.DM())
+    if (interaction.channel.type === "DM")
       return interaction.reply({
         content: "Vous ne pouvez pas utiliser cette commande en message privé!",
         ephemeral: true,
@@ -648,7 +647,7 @@ client.on("interactionCreate", async (interaction) => {
     const texte = interaction.options.getString("texte");
     const userguy = interaction.options.getMember("utilisateur");
     const direct = interaction.options.getBoolean("direct");
-    const logsembed = new EmbedBuilder()
+    const logsembed = new MessageEmbed()
       .setTitle(
         `<:enveloppe:966105701401387058> Message envoyé à un mec random`
       )
@@ -678,7 +677,7 @@ client.on("interactionCreate", async (interaction) => {
       return client.channels.cache.get(logsmp).send({ embeds: [logsembed] });
     } else {
       // console.log(userguy)
-      const userembed = new EmbedBuilder()
+      const userembed = new MessageEmbed()
         .setTitle(
           "<:enveloppe:966105701401387058> Vous avez reçu un message de l'administration"
         )
@@ -722,7 +721,7 @@ client.on("messageCreate", async (message) => {
     const DM = await message.author.send({
       content: `La discussion avec le staff a à présent commencé. Tout message que vous écrivez à partir de maintenant sera transmis à la direction.\n\nPour finir cette discussion, il vous suffira juste de taper **\`!stop\`**`,
     }); //We're creating a DM channel with the user that ran the command.
-    const startembed = new EmbedBuilder()
+    const startembed = new MessageEmbed()
       .setTitle(
         `Discussion commencé avec ${message.author.username}#${message.author.discriminator}`
       )
@@ -747,7 +746,7 @@ client.on("messageCreate", async (message) => {
         collector.stop();
         return;
       }
-      const logsembed = new EmbedBuilder()
+      const logsembed = new MessageEmbed()
         .setTitle(`<:enveloppe:966105701401387058> J'ai reçu un message`)
         .setDescription(
           `**Message reçu de la part de ${m.author} . Voici son contenu :** \n\n${m.content}\n\n`
@@ -777,7 +776,7 @@ client.on("messageCreate", async (message) => {
     }
     collector.on("end", (collected) => {
       //Triggered when the collector ends. collected is a <Collection> of all messages collected and reason is the reason the collector ended.
-      const endembed = new EmbedBuilder()
+      const endembed = new MessageEmbed()
         .setTitle(
           `Discussion terminé avec ${message.author.username}#${message.author.discriminator}`
         )
@@ -799,349 +798,316 @@ client.on("messageCreate", async (message) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "play") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const query = interaction.options.getString("nom-lien");
+    const queue = player.createQueue(interaction.guild, {
+      metadata: {
+        channel: interaction.channel,
+      },
     });
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const query = interaction.options.getString("name-link");
-    // const queue = player.createQueue(interaction.guild, {
-    //   metadata: {
-    //     channel: interaction.channel,
-    //   },
-    // });
 
-    // // verify vc connection
-    // try {
-    //   if (!queue.connection)
-    //     await queue.connect(interaction.member.voice.channel);
-    // } catch {
-    //   queue.destroy();
-    //   return await interaction.reply({
-    //     content: "❌ | Je n'ai pas pu rejoindre le salon vocal !",
-    //     ephemeral: true,
-    //   });
-    // }
+    // verify vc connection
+    try {
+      if (!queue.connection)
+        await queue.connect(interaction.member.voice.channel);
+    } catch {
+      queue.destroy();
+      return await interaction.reply({
+        content: "❌ | Je n'ai pas pu rejoindre le salon vocal !",
+        ephemeral: true,
+      });
+    }
 
-    // await interaction.deferReply();
-    // const track = await player
-    //   .search(query, {
-    //     requestedBy: interaction.user,
-    //   })
-    //   .then((x) => x.tracks[0]);
-    // if (!track)
-    //   return await interaction.followUp({
-    //     content: `🔎❌ | le titre **\`${query}\`** n'a pas été trouvé`,
-    //     ephemeral: true,
-    //   });
+    await interaction.deferReply();
+    const track = await player
+      .search(query, {
+        requestedBy: interaction.user,
+      })
+      .then((x) => x.tracks[0]);
+    if (!track)
+      return await interaction.followUp({
+        content: `🔎❌ | le titre **\`${query}\`** n'a pas été trouvé`,
+        ephemeral: true,
+      });
 
-    // queue.play(track);
-    // const playembed = new EmbedBuilder()
-    //   .setTitle(
-    //     `<:checkmark:973943432236122153> Nouveau titre ajouté à la queue ♪`
-    //   )
-    //   .setDescription(
-    //     `J'ai ajouté à la queue [**\`${track.title}\`**](${track.url})!\n\n`
-    //   )
-    //   .setThumbnail(track.thumbnail)
-    //   .setFooter({
-    //     text: `${interaction.user.username}#${interaction.user.discriminator}`,
-    //     icon_url: interaction.user.avatarURL(),
-    //   })
-    //   .setColor("#82b597")
-    //   .setTimestamp()
+    queue.play(track);
+    const playembed = new MessageEmbed()
+      .setTitle(
+        `<:checkmark:973943432236122153> Nouveau titre ajouté à la queue ♪`
+      )
+      .setDescription(
+        `J'ai ajouté à la queue [**\`${track.title}\`**](${track.url})!\n\n`
+      )
+      .setThumbnail(track.thumbnail)
+      .setFooter({
+        text: `${interaction.user.username}#${interaction.user.discriminator}`,
+        icon_url: interaction.user.avatarURL(),
+      })
+      .setColor("#82b597")
+      .setTimestamp()
 
-    //   .addFields(
-    //     {
-    //       name: "Auteur",
-    //       value: `[${track.author}](${track.author.url})`,
-    //       inline: true,
-    //     },
-    //     { name: "Durée", value: `${track.duration}`, inline: true }
-    //   );
-    // return await interaction.followUp({ embeds: [playembed] });
+      .addFields(
+        {
+          name: "Auteur",
+          value: `[${track.author}](${track.author.url})`,
+          inline: true,
+        },
+        { name: "Durée", value: `${track.duration}`, inline: true }
+      );
+    return await interaction.followUp({ embeds: [playembed] });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "stop") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content: "Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const queue = player.getQueue(interaction.guild);
+    if (!queue)
+      return await interaction.reply({
+        content: "❌ | Il n'y a pas de musique en cours !",
+        ephemeral: true,
+      });
+    queue.stop();
+    return await interaction.reply({
+      content: "🚧 | La musique a été arrêtée !",
+      ephemeral: false,
     });
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content: "Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const queue = player.getQueue(interaction.guild);
-    // if (!queue)
-    //   return await interaction.reply({
-    //     content: "❌ | Il n'y a pas de musique en cours !",
-    //     ephemeral: true,
-    //   });
-    // queue.stop();
-    // return await interaction.reply({
-    //   content: "🚧 | La musique a été arrêtée !",
-    //   ephemeral: false,
-    // });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "volume") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content: "Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const volumee = interaction.options.getNumber("volume");
+    const queue = player.getQueue(interaction.guild);
+    if (!queue)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
+        ephemeral: true,
+      });
+    if (volumee > 100) {
+      if (interaction.user.id !== "494079726470823936") {
+        return await interaction.reply({
+          content:
+            "<:cross:973943482420977704> | Le volume doit être compris entre 0 et 100 !",
+          ephemeral: true,
+        });
+      }
+    }
+    queue.setVolume(volumee);
+    return await interaction.reply({
+      content: `<:enceinte:979789132240916570> | Le volume a été mis à **${volumee}%** !`,
+      ephemeral: false,
     });
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content: "Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const volumee = interaction.options.getNumber("volume");
-    // const queue = player.getQueue(interaction.guild);
-    // if (!queue)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
-    //     ephemeral: true,
-    //   });
-    // if (volumee > 100) {
-    //   if (interaction.user.id !== "494079726470823936") {
-    //     return await interaction.reply({
-    //       content:
-    //         "<:cross:973943482420977704> | Le volume doit être compris entre 0 et 100 !",
-    //       ephemeral: true,
-    //     });
-    //   }
-    // }
-    // queue.setVolume(volumee);
-    // return await interaction.reply({
-    //   content: `<:enceinte:979789132240916570> | Le volume a été mis à **${volumee}%** !`,
-    //   ephemeral: false,
-    // });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "queue") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
-    });
-
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content: "Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const queue = player.getQueue(interaction.guild);
-    // if (!queue)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
-    //     ephemeral: true,
-    //   });
-    // const track = queue.nowPlaying();
-    // const queueembed = new EmbedBuilder()
-    //   .setTitle(`Queue du serveur ${interaction.guild.name}`)
-    //   // .setDescription(`${queue.createProgressBar()}\nVoici la queue du serveur :\n\n${queue.map(x => `**${x.track.title}** - [Lien](${x.track.url})`).join("\n")}`)
-    //   .setDescription(
-    //     `**Musique actuelle :** [${track}](${
-    //       track.url
-    //     })\n\n${queue.createProgressBar()}\n\n${queue}`
-    //   )
-    //   .setFooter({
-    //     text: `${interaction.user.username}#${interaction.user.discriminator}`,
-    //     icon_url: interaction.user.avatarURL(),
-    //   })
-    //   .setColor("#82b597")
-    //   .setTimestamp()
-    //   .setThumbnail(zizou);
-    // return await interaction.reply({ embeds: [queueembed], ephemeral: false });
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content: "Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const queue = player.getQueue(interaction.guild);
+    if (!queue)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
+        ephemeral: true,
+      });
+    const track = queue.nowPlaying();
+    const queueembed = new MessageEmbed()
+      .setTitle(`Queue du serveur ${interaction.guild.name}`)
+      // .setDescription(`${queue.createProgressBar()}\nVoici la queue du serveur :\n\n${queue.map(x => `**${x.track.title}** - [Lien](${x.track.url})`).join("\n")}`)
+      .setDescription(
+        `**Musique actuelle :** [${track}](${
+          track.url
+        })\n\n${queue.createProgressBar()}\n\n${queue}`
+      )
+      .setFooter({
+        text: `${interaction.user.username}#${interaction.user.discriminator}`,
+        icon_url: interaction.user.avatarURL(),
+      })
+      .setColor("#82b597")
+      .setTimestamp()
+      .setThumbnail(zizou);
+    return await interaction.reply({ embeds: [queueembed], ephemeral: false });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "skip") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const queue = player.getQueue(interaction.guild);
+    if (!queue)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
+        ephemeral: true,
+      });
+    queue.skip();
+    return await interaction.reply({
+      content: "<:skip:973944954810417222> | La musique a été skip !",
+      ephemeral: false,
     });
-
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const queue = player.getQueue(interaction.guild);
-    // if (!queue)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
-    //     ephemeral: true,
-    //   });
-    // queue.skip();
-    // return await interaction.reply({
-    //   content: "<:skip:973944954810417222> | La musique a été skip !",
-    //   ephemeral: false,
-    // });
   }
 });
 let paused = false;
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "pause") {
-    return interaction.reply({
-      content:
-        "Dû aux récents changements dans l'API Discord et notre système de musique, les commandes musiques sont désactivés. ",
-      ephemeral: true,
-    });
-
-    // if (interaction.channel.type === ChannelType.DM())
-    //   return interaction.reply({
-    //     content: "Vous ne pouvez pas utiliser cette commande en message privé!",
-    //     ephemeral: true,
-    //   });
-    // if (!interaction.member.voice.channelId)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
-    //     ephemeral: true,
-    //   });
-    // if (
-    //   interaction.guild.me.voice.channelId &&
-    //   interaction.member.voice.channelId !==
-    //     interaction.guild.me.voice.channelId
-    // )
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
-    //     ephemeral: true,
-    //   });
-    // const queue = player.getQueue(interaction.guild);
-    // if (!queue)
-    //   return await interaction.reply({
-    //     content:
-    //       "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
-    //     ephemeral: true,
-    //   });
-    // if (paused === false) {
-    //   queue.setPaused(true);
-    //   paused = true;
-    //   return await interaction.reply({
-    //     content:
-    //       "<:pause:979771588742377522> | La musique a été mise en pause !",
-    //     ephemeral: false,
-    //   });
-    // } else if (paused === true) {
-    //   queue.setPaused(false);
-    //   paused = false;
-    //   return await interaction.reply({
-    //     content: "<:resume:979771640994996295> | La musique a été reprise !",
-    //     ephemeral: false,
-    //   });
-    // }
+    if (interaction.channel.type === "DM")
+      return interaction.reply({
+        content: "Vous ne pouvez pas utiliser cette commande en message privé!",
+        ephemeral: true,
+      });
+    if (!interaction.member.voice.channelId)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Vous n'êtes pas dans un salon vocal!",
+        ephemeral: true,
+      });
+    if (
+      interaction.guild.me.voice.channelId &&
+      interaction.member.voice.channelId !==
+        interaction.guild.me.voice.channelId
+    )
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Tu n'est pas dans le même salon vocal que le BOT !",
+        ephemeral: true,
+      });
+    const queue = player.getQueue(interaction.guild);
+    if (!queue)
+      return await interaction.reply({
+        content:
+          "<:cross:973943482420977704> | Il n'y a pas de musique en cours !",
+        ephemeral: true,
+      });
+    if (paused === false) {
+      queue.setPaused(true);
+      paused = true;
+      return await interaction.reply({
+        content:
+          "<:pause:979771588742377522> | La musique a été mise en pause !",
+        ephemeral: false,
+      });
+    } else if (paused === true) {
+      queue.setPaused(false);
+      paused = false;
+      return await interaction.reply({
+        content: "<:resume:979771640994996295> | La musique a été reprise !",
+        ephemeral: false,
+      });
+    }
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "bmi") {
-    const weight = interaction.options.getNumber("weight");
-    const height = interaction.options.getNumber("height");
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "imc") {
+    const weight = interaction.options.getNumber("poids");
+    const height = interaction.options.getNumber("taille");
     let imc = `${weight / (height * height)})`;
     imc = (weight / ((height * height) / 10000)).toFixed(2);
     console.log(imc);
-    const imcembed = new EmbedBuilder()
+    const imcembed = new MessageEmbed()
       .setTitle(`IMC de ${interaction.user.username}`)
       .setDescription(
         `Voici votre IMC :\n\n **${imc}**\n\n __**Échelle**__ :\n\n **Moins de 18,5 :** Maigreur. Peut occasionner certains risques pour la santé.\n\n **Entre 18,5 et 25 :** Normal\n\n **Entre 25 et 30 :** Surpoids. Peut occasionner certains risques pour la santé.\n\n **Entre 30 et 35 :** Obésité modérée. Risque accru de développer certaines maladies\n\n **Entre 35 et 40 :** Obésité sévère\n\n **Plus de 40 :** Obésité morbide/massive.\n\n\n
@@ -1158,13 +1124,13 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "8ball") {
     let question = interaction.options.getString("question");
     capFL(question);
     const answers = config.answers;
     const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
-    const eightballembed = new EmbedBuilder()
+    const eightballembed = new MessageEmbed()
       .setTitle(`🎱8ball de ${interaction.user.username}`)
       .addFields(
         { name: "Question", value: `${capFL(question)}` },
@@ -1182,7 +1148,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "lyrics") {
     // const chanson = interaction.options.getString("chanson");
     // const queue = player.getQueue(interaction.guild);
@@ -1192,7 +1158,7 @@ client.on("interactionCreate", async (interaction) => {
     //   }
     //   const song = queue.nowPlaying()
 
-    //   const lyricsembed = new EmbedBuilder()
+    //   const lyricsembed = new MessageEmbed()
     //   .setTitle(`Lyrics de ${song}`)
     //   .setDescription(`${lyrics}`)
     //   .setFooter({ text: `${interaction.user.username}#${interaction.user.discriminator}`, icon_url: interaction.user.avatarURL() })
@@ -1210,13 +1176,13 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isMessageContextMenuCommand()) return;
+  if (!interaction.isMessageContextMenu()) return;
   if (interaction.commandName === "Save") {
     //get the message
     const msg = await interaction.channel.messages.fetch(interaction.targetId);
     // console.log(msg.content)
 
-    const savedembed = new EmbedBuilder()
+    const savedembed = new MessageEmbed()
       .setTitle("<:bookmark:969251187159363694> Message sauvegardé")
       .setDescription(
         `J'ai sauvegardé le message suivant envoyé par ${msg.author}:\n\n\`${msg.content}\``
@@ -1251,11 +1217,11 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isUserContextMenuCommand()) return;
+  if (!interaction.isContextMenu()) return;
   if (interaction.commandName === "Info") {
     const user = await client.users.fetch(interaction.targetId);
     const member = await interaction.guild.members.fetch(interaction.targetId);
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setAuthor({
         name: `${user.username}#${user.discriminator}`,
         icon_url: user.avatarURL(),
@@ -1407,10 +1373,10 @@ client.on("voiceStateUpdate", async (user, oldState, newState) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "news") {
     console.log(interaction.options);
-    const country = interaction.options.getString("country");
+    const country = interaction.options.getString("pays");
     console.log(country);
     async function getNews() {
       try {
@@ -1430,7 +1396,7 @@ client.on("interactionCreate", async (interaction) => {
     let res = await getNews();
     let remoji = Math.floor(Math.random() * config.newsemoji.length);
     remoji = config.newsemoji[remoji];
-    const newsembed = new EmbedBuilder()
+    const newsembed = new MessageEmbed()
       .setTitle(`📢 | Dernière nouvelles  :flag_${country}:`)
       .setFooter({
         text: `${interaction.user.username}#${interaction.user.discriminator}`,
@@ -1466,7 +1432,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "loop") {
     const queue = player.getQueue(interaction.guild);
     if (
@@ -1491,61 +1457,120 @@ client.on("interactionCreate", async (interaction) => {
     );
   }
 });
+// client.on('interactionCreate', async interaction => {
+// if (!interaction.isCommand()) return;
+// if (interaction.commandName === 'wikipedia') {
+//   const query = interaction.options.getString('recherche');
+//   async function getWiki() {
+//     try {
+//       let response = await axios.get(
+//         `https://fr.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exlimit=max&explaintext&exintro&titles=${query}&redirects=`
+//       );
+//       return response.data;
+//     } catch (error) {
+//       console.warn(error)
+//       await interaction.reply({
+//         content: `<:warning:973943398178373663> Une erreur est survenue lors de la recherche du texte __**\`${query}\`**__ <:warning:973943398178373663>`,
+//         ephemeral: true,
+//       });
+//     }
+//   }
+
+//   let res = await getWiki();
+//   // if (res.query.pages[-1]) {
+//   //   return interaction.reply({content: `<:warning:973943398178373663> | La recherche \`${query}\` n\'a retourné aucun résultat.`, ephemeral: true});
+//   // };
+//   const titlee = res.query.pages[Object.keys(res.query.pages)[0]].title.replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20").replace(" ", "%20")
+//   const extracct = res.query.pages[Object.keys(res.query.pages)[0]].extract.replace("\n", "\n\n")
+//   const wikiEmbed = new MessageEmbed()
+//   .setAuthor({name: `Wikipedia`, icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png', url: `https://fr.wikipedia.org/wiki/${titlee}`})
+//   .setColor('#82b597')
+//   .setDescription(`Résultat de la recherche :\n\n${extracct} `)
+//   .setFooter({text: `${interaction.user.username}#${interaction.user.discriminator}`, icon_url: interaction.user.avatarURL()})
+//   .setTimestamp()
+//   if(res.query.pages[Object.keys(res.query.pages)[0]].extract === undefined) {
+//     wikiEmbed.setDescription(`Résultat de la recherche :\n\nAucun résultat trouvé.`)
+//   }
+//     return interaction.reply({ embeds: [wikiEmbed], ephemeral: true });
+// }
+// });
+//   client.on("interactionCreate", async (interaction) => {
+//     if (!interaction.isAutocomplete()) return;
+
+//     if (interaction.commandName === "wikipedia") {
+//       const focusedOption = interaction.options.getFocused(true);
+
+//       async function getWiki() {
+//         try {
+//           let response = await axios.get(
+//             `https://fr.wikipedia.org/w/api.php?action=opensearch&limit=15&format=json&search=${focusedOption.value}`
+//           );
+//           resolve(response.data);
+//           return response.data;
+//         } catch (error) {
+//           resolve("error");
+//           console.warn(error);
+//           console.log("CA MARCHE PAS");
+//         }
+//         let res = await getWiki();
+//         try {
+//           //  console.error(res[1][0])
+//           const response = await interaction.respond({});
+//         } catch (error) {
+//           console.warn(error);
+//         }
+//       }
+//     }
+//   });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "info") {
-    if (interaction.options.getSubcommand() === "bot") {
-      const aboutEmbed = new EmbedBuilder()
-        .setTitle("A propos du bot")
-        .setDescription(
-          "Ce bot Discord est dévellopé par <@494079726470823936> depuis le <t:1649951862>. Pour un maximum de transparence envers nos utilisateur, ci-dessous, vous pourrez voir les différentes librairies utilisés par ce bot.\n Vous pouvez à présent supporter ce projet sur https://github.com/sivelswhy/Zizou\n\n__**Documentation :**__ https://github.com/sivelswhy/Zizou/wiki\n\n Veuillez noter que cette commande peut ne pas être constamment à jour. Merci de visiter le WiKi pour une version à jour."
-        )
-        .addFields(
-          {
-            name: "Discord.js",
-            value: "https://discord.js.org/",
-            inline: true,
-          },
-          {
-            name: "Météo",
-            value: "[Open Weather Map](https://openweathermap.org/)",
-            inline: true,
-          },
-          {
-            name: "News",
-            value: "[News API](https://newsapi.org/)",
-            inline: true,
-          },
-          {
-            name: "Wikipedia",
-            value: "[Wikipedia](https://wikipedia.org/)",
-            inline: true,
-          },
-          {
-            name: "Virus",
-            value: "[VirusTotal](https://www.virustotal.com/)",
-            inline: true,
-          },
-          { name: "QrCode", value: "[GoQR](https://goqr.me/)", inline: true },
-          {
-            name: "Îcones",
-            value:
-              "[Icons8](https://icons8.com/) ou [Microsoft](https://microsoft.com)",
-            inline: true,
-          }
-        )
-        .setFooter({
-          text: `${interaction.user.username}#${interaction.user.discriminator}`,
-          icon_url: interaction.user.avatarURL(),
-        })
-        .setTimestamp()
-        .setColor("#82b597");
-      return interaction.reply({ embeds: [aboutEmbed], ephemeral: true });
-    }
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "about") {
+    const aboutEmbed = new MessageEmbed()
+      .setTitle("A propos du bot")
+      .setDescription(
+        "Ce bot Discord est dévellopé par <@494079726470823936> depuis le <t:1649951862>. Pour un maximum de transparence envers nos utilisateur, ci-dessous, vous pourrez voir les différentes librairies utilisés par ce bot.\n Vous pouvez à présent supporter ce projet sur https://github.com/sivelswhy/Zizou\n\n__**Documentation :**__ https://github.com/sivelswhy/Zizou/wiki\n\n Veuillez noter que cette commande peut ne pas être constamment à jour. Merci de visiter le WiKi pour une version à jour."
+      )
+      .addFields(
+        { name: "Discord.js", value: "https://discord.js.org/", inline: true },
+        {
+          name: "Météo",
+          value: "[Open Weather Map](https://openweathermap.org/)",
+          inline: true,
+        },
+        {
+          name: "News",
+          value: "[News API](https://newsapi.org/)",
+          inline: true,
+        },
+        {
+          name: "Wikipedia",
+          value: "[Wikipedia](https://wikipedia.org/)",
+          inline: true,
+        },
+        {
+          name: "Virus",
+          value: "[VirusTotal](https://www.virustotal.com/)",
+          inline: true,
+        },
+        { name: "QrCode", value: "[GoQR](https://goqr.me/)", inline: true },
+        {
+          name: "Îcones",
+          value:
+            "[Icons8](https://icons8.com/) ou [Microsoft](https://microsoft.com)",
+          inline: true,
+        }
+      )
+      .setFooter({
+        text: `${interaction.user.username}#${interaction.user.discriminator}`,
+        icon_url: interaction.user.avatarURL(),
+      })
+      .setTimestamp()
+      .setColor("#82b597");
+    return interaction.reply({ embeds: [aboutEmbed], ephemeral: true });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "valorant") {
     const riotid = interaction.options.getString("riotid");
     const tagline = interaction.options.getString("tagline");
@@ -1583,7 +1608,7 @@ client.on("interactionCreate", async (interaction) => {
       // fs.writeFileSync('data.json', res);
 
       await browser.close();
-      const statsEmbed = new EmbedBuilder()
+      const statsEmbed = new MessageEmbed()
         .setTitle(
           `Statistiques du joueur ${res.data.platformInfo.platformUserHandle}`
         )
@@ -1597,7 +1622,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "virus") {
     if (interaction.options.getSubcommand() === "ip") {
       const ip = interaction.options.getString("ip");
@@ -1632,7 +1657,7 @@ client.on("interactionCreate", async (interaction) => {
         console.log("error on the second request");
       });
       if (!res2) return;
-      const virusembed = new EmbedBuilder()
+      const virusembed = new MessageEmbed()
         .setTitle(`Analyse de l'adresse IP : ${ip}`)
         .setColor("#82b597")
         .addFields(
@@ -1663,11 +1688,11 @@ client.on("interactionCreate", async (interaction) => {
           text: `Analayse de l'adresse IP "${ip}" , Ces données sont à but informatives ! Nous ne concevons en aucun cas les actions illégales effectués avec ces données !`,
           icon_url: interaction.user.avatarURL(),
         });
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
+      const row = new MessageActionRow().addComponents(
+        new MessageButton()
           .setCustomId("ip")
           .setLabel("Stats Avancés")
-          .setStyle("Primary")
+          .setStyle("PRIMARY")
           .setEmoji("<:process:979735518126419968>")
       );
       await interaction.followUp({
@@ -1680,7 +1705,7 @@ client.on("interactionCreate", async (interaction) => {
         filter,
         time: 180000,
       });
-      const morestatsembed = new EmbedBuilder()
+      const morestatsembed = new MessageEmbed()
         .setTitle(`Analyse avancée de l'adresse IP : ${ip}`)
         .addFields(
           {
@@ -1810,7 +1835,7 @@ client.on("interactionCreate", async (interaction) => {
           }
         )
         .setColor("#82b597");
-      const secondembed = new EmbedBuilder()
+      const secondembed = new MessageEmbed()
         .addFields(
           {
             name: "Lionic",
@@ -1939,7 +1964,7 @@ client.on("interactionCreate", async (interaction) => {
           }
         )
         .setColor("#82b597");
-      const thirdembed = new EmbedBuilder()
+      const thirdembed = new MessageEmbed()
         .addFields(
           {
             name: "Yandex Safebrowsing",
@@ -2068,7 +2093,7 @@ client.on("interactionCreate", async (interaction) => {
           }
         )
         .setColor("#82b597");
-      const fourthembed = new EmbedBuilder()
+      const fourthembed = new MessageEmbed()
         .addFields(
           {
             name: "NotMining",
@@ -2149,7 +2174,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "random") {
     if (interaction.options.getSubcommand() === "face") {
       interaction.deferReply();
@@ -2163,7 +2188,7 @@ client.on("interactionCreate", async (interaction) => {
         });
       });
       if (!res) return;
-      const faceEmbed = new EmbedBuilder()
+      const faceEmbed = new MessageEmbed()
         .setTitle(`Génération d'un visage inexistant`)
         .setImage(`https://this-person-does-not-exist.com${res.data.src}`)
         .setColor("#82b597")
@@ -2176,9 +2201,9 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "support") {
-    const modal = new ModalBuilder()
+    const modal = new Modal()
       .setCustomId("support-modal")
       .setTitle("Formulaire d'aide");
 
@@ -2188,36 +2213,35 @@ client.on("interactionCreate", async (interaction) => {
     //   .setRequired(false)
     //   .setPlaceholder('Celle-ci ne sera partagé avec personne ! (plus d\'infos -> wiki')
     // 	.setStyle("SHORT")
-    const problemTitleInput = new TextInputBuilder()
+    const problemTitleInput = new TextInputComponent()
       .setCustomId("problemTitle")
       .setLabel("Titre de votre problème")
       .setPlaceholder("Problème avec la commande X")
       .setRequired(true)
       .setMinLength(10)
-      .setMaxLength(100)
-      .setStyle(TextInputStyle.Short);
-    const problemDescriptionInput = new TextInputBuilder()
+      .setStyle("SHORT");
+    const problemDescriptionInput = new TextInputComponent()
       .setCustomId("problem-description")
       .setLabel("Veuillez décrire votre problème")
       .setPlaceholder("Bonjour, quand je fais X commande......")
       .setRequired(true)
       .setMinLength(50)
-      .setStyle(TextInputStyle.Paragraph);
-    // const firstActionRow = new ActionRowBuilder().addComponents(emailAdressInput);
-    const secondActionRow = new ActionRowBuilder().addComponents(
+      .setStyle("PARAGRAPH");
+    // const firstActionRow = new MessageActionRow().addComponents(emailAdressInput);
+    const secondActionRow = new MessageActionRow().addComponents(
       problemDescriptionInput
     );
-    const thirdActionRow = new ActionRowBuilder().addComponents(
+    const thirdActionRow = new MessageActionRow().addComponents(
       problemTitleInput
     );
     modal.addComponents(/*firstActionRow,*/ thirdActionRow, secondActionRow);
-    return await interaction.showModal(modal);
+    await interaction.showModal(modal);
   }
 });
 client.on("interactionCreate", (interaction) => {
   if (!interaction.isModalSubmit()) return;
   if (interaction.customId === "support-modal") {
-    const confirmationEmbed = new EmbedBuilder()
+    const confirmationEmbed = new MessageEmbed()
       .setTitle("Récaptitulatif de votre demande")
       .setDescription(
         `Nous avons bien reçu votre demande, à présent, voici un récapitulatif de votre demande :\n\n`
@@ -2236,7 +2260,7 @@ client.on("interactionCreate", (interaction) => {
       .setFooter({
         text: "Si votre demande est avéré à être un troll ou une demande faite uniquement pour occuper le temps du support, vous pourrez être ammené à être banni de l'utilisation de notre BOT",
       });
-    const supportEmbed = new EmbedBuilder()
+    const supportEmbed = new MessageEmbed()
       .setTitle("Nouveau ticket !")
       .setDescription(
         `Une nouvelle requête d'aide a été créer par **${interaction.user.username}#${interaction.user.discriminator}** *( ${interaction.user.id})*. Voici ci-dessous le contenu de son ticket.\n\n`
@@ -2257,26 +2281,21 @@ client.on("interactionCreate", (interaction) => {
         iconURL: interaction.user.avatarURL(),
       });
     interaction.reply({ embeds: [confirmationEmbed], ephemeral: true });
-    // return client.channels.cache
-    //   .get("993215505303343185")
-    //   .send({ embeds: [supportEmbed] });
-    const channel = client.channels.cache.get("1023349364376219738");
-    channel.threads.create({
-      name: interaction.fields.getTextInputValue("problemTitle"),
-      message: { embeds: [supportEmbed] },
-      appliedTags: ["1023351365025665054"],
-    });
+    interaction.dele;
+    return client.channels.cache
+      .get("993215505303343185")
+      .send({ embeds: [supportEmbed] });
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "image") {
     if (interaction.options.getSubcommand() === "upload") {
       await interaction.deferReply({ ephemeral: false });
       const image = interaction.options.getAttachment("image");
 
-      // const save_button = new ActionRowBuilder().addComponents(
-      //   new ButtonBuilder()
+      // const save_button = new MessageActionRow().addComponents(
+      //   new MessageButton()
       //     .setCustomId("save_link")
       //     .setLabel("Enregistrer l'image en MP")
       //     .setStyle("PRIMARY")
@@ -2299,15 +2318,13 @@ client.on("interactionCreate", async (interaction) => {
 });
 //get when a user joins the guild and rename it with the nc4t prefix
 client.on("guildMemberAdd", async (member) => {
-  if (member.guild.id === "929774859523879002") {
-    member.send(`Bienvenue sur le serveur ${member.user.user}!`);
-    member.setNickname(`NC4T_${member.user.username}`);
-  }
+  member.send(`Bienvenue sur le serveur ${member.user.user}!`);
+  member.setNickname(`NC4T_${member.user.username}`);
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "bantemp") {
-    const timeout_embed = new EmbedBuilder()
+    const timeout_embed = new MessageEmbed()
       .setTitle("⏲️ Nouveau Timeout")
       .setColor("#e00909")
       .setTimestamp();
@@ -2411,12 +2428,12 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "deban") {
     await interaction.deferReply({ ephemeral: true });
     const user = interaction.options.getMember("utilisateur");
 
-    const remove_timeout_embed = new EmbedBuilder()
+    const remove_timeout_embed = new MessageEmbed()
       .setTitle("⏲️ Enlèvement de timeout")
       .setColor("#3bcc25")
       .setTimestamp()
@@ -2461,8 +2478,8 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "headsortails") {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "pileouface") {
     await interaction.deferReply();
     const mention = interaction.options.getMember("mention");
     const pile_face = ["pile", "face"];
@@ -2480,9 +2497,9 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "riotid") {
-    if (interaction.channel.type === ChannelType.DM())
+    if (interaction.channel.type === "DM")
       return interaction.reply({
         content: "Vous ne pouvez pas utiliser cette commande en message privé!",
         ephemeral: true,
@@ -2496,18 +2513,18 @@ client.on("interactionCreate", async (interaction) => {
 });
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isAutocomplete()) return;
-  if (interaction.commandName === "route") {
-    if (interaction.options.getSubcommand() === "normandy") {
+  if (interaction.commandName === "trajet") {
+    if (interaction.options.getSubcommand() === "normandie") {
       const value = interaction.options.getFocused();
       const autocomplete_url =
         "https://www.nomadcar14.fr/itineraire/api/autocomplete?q=";
-      const res = await axios.get(autocomplete_url + value);
-      if (res.data === []) {
+      const resstart = await axios.get(autocomplete_url + value);
+      if (resstart.data === []) {
         return;
       } else {
         // for (station of resstart.data) {
         // let stat = station.map(station = ({ name: stat.name, value: stat.externalCode}))
-        let choices = res.data.map((station) => ({
+        let choices = resstart.data.map((station) => ({
           name: station.name,
           value: station.externalCode,
         }));
@@ -2517,12 +2534,12 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "route") {
-    if (interaction.options.getSubcommand() === "normandy") {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === "trajet") {
+    if (interaction.options.getSubcommand() === "normandie") {
       await interaction.deferReply({ ephemeral: true });
-      const start = interaction.options.getString("start");
-      const end = interaction.options.getString("end");
+      const start = interaction.options.getString("depart");
+      const end = interaction.options.getString("arrivee");
 
       const current_year = new Date().getFullYear();
       let current_day_letter = new Date().toLocaleString("en", {
@@ -2550,22 +2567,21 @@ client.on("interactionCreate", async (interaction) => {
       });
 
       const final_time = `${current_year}${current_month}${current_day_number}T${current_time}`;
-
+      // console.log(`${current_year}\n${current_day_letter}\n${current_time}\n ${current_month}\n${current_day_number}`);
+      console.log(final_time);
       const route_url = `https://www.nomadcar14.fr/itineraire/api/getItineraire?from=${start}&to=${end}&datetime=${final_time}&datetype=departure&extra=`;
       console.log(route_url);
       const res = await axios.get(route_url);
-
-      if (JSON.stringify(res.data) === "[]") {
+      if (res.data === []) {
         return interaction.followUp({
           content:
-            "Aucun trajet trouvé pour cette route. Faites attention à bien selectionner une option. \n\nPour plus d'informations, merci de visiter https://github.com/sivelswhy/Zizou/wiki/Trajet-Normandie",
+            "Aucun trajet trouvé pour cette route. Faites attention à bien selectionner une option",
           ephemeral: true,
         });
       }
-
+      //https://nomadcar14.cartographie.pro/?launchiti=1&fromId=admin:fr:14220&fromName=Deauville%20(14800)&fromType=id&fromCoordLat=49.359999&fromCoordLng=0.075277&fromType=id     &toId=admin:fr:14754     &toCoordLat=49.321443 &toCoordLng=-0.005251       &toName=Villers-sur-Mer%20(14640)  &toType=id &datetime=20220823T200600 &datetype=departure&position=0
       const interactive_map_link = `https://nomadcar14.cartographie.pro?launchiti=1&fromId=${start}&fromName=${start.name}&fromType=id&fromCoordLat=${res.data[0].depart.coord.lat}&fromCoordLng=${res.data[0].depart.coord.lng}&fromType=id&toId=${end}&toCoordLat=${res.data[0].arrivee.coord.lat}&toCoordLng=${res.data[0].arrivee.coord.lng}&toName=${end.name}&toType=id&datetime=${final_time}&datetype=departure&position=0`;
-
-      const route_embed = new EmbedBuilder()
+      const route_embed = new MessageEmbed()
         .setTitle(
           `Horaire de bus à partir de ${new Date().toLocaleString("fr", {
             hour: "numeric",
@@ -2596,24 +2612,19 @@ client.on("interactionCreate", async (interaction) => {
             }:t>⁣⁣⁣ㅤ➡️ㅤ<t:${res.data[0].arriveeDate}:t>`,
           }
         )
-        .setThumbnail("https://i.imgur.com/vuRkonV.png");
 
-      let current_embed = route_embed;
-
-      const second_route_embed = new EmbedBuilder()
-        .setColor("#EF3340")
         .setFooter({
           text: `Ces trajets s'appliquent uniquement pour les bus du groupe Nomad et non le groupe Twisto`,
           iconURL: "https://i.imgur.com/vuRkonV.png",
-        });
-
+        })
+        .setThumbnail("https://i.imgur.com/vuRkonV.png")
+        .setColor("#EF3340");
       for (sections of res.data[0].sections) {
-        console.log(route_embed.data.fields.length);
-        if (route_embed.data.fields.length >= 20) {
-          current_embed = second_route_embed;
-        }
+        // Create an array of sections (array of fields) and then add into the embed counting the number of fields, if the number of total number of fields is greater than 25, the embed will be split into multiple embeds
+        let sections_array = [];
+
         if (sections.type === "TRANSPORT") {
-          current_embed.addFields(
+          route_embed.addFields(
             { name: "⁣ㅤ", value: "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬" },
             {
               name: `Station de départ`,
@@ -2639,14 +2650,14 @@ client.on("interactionCreate", async (interaction) => {
           );
 
           for (directions of sections.lines.directions) {
-            current_embed.addFields({
+            route_embed.addFields({
               name: `Direction`,
               value: `${directions.name}`,
               inline: true,
             });
           }
         } else if (sections.type === "PIED") {
-          current_embed.addFields(
+          route_embed.addFields(
             { name: "⁣ㅤ", value: "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬" },
             {
               name: "Arrivée",
@@ -2661,7 +2672,7 @@ client.on("interactionCreate", async (interaction) => {
             }
           );
         } else if (sections.type === "ATTENTE") {
-          current_embed.addFields(
+          route_embed.addFields(
             { name: "⁣ㅤ", value: "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬" },
             { name: "Lieu d'attente", value: `${sections.waitingPoint.name}` },
             {
@@ -2673,7 +2684,7 @@ client.on("interactionCreate", async (interaction) => {
             }
           );
         } else {
-          current_embed.addFields(
+          route_embed.addFields(
             { name: "⁣ㅤ", value: "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬" },
             {
               name: "❓",
@@ -2683,41 +2694,35 @@ client.on("interactionCreate", async (interaction) => {
           );
         }
       }
-      if (route_embed.data.fields.length < 20) {
-        await interaction.followUp({ embeds: [route_embed] });
-      } else {
-        await interaction.followUp({
-          embeds: [route_embed, second_route_embed],
-        });
-      }
+      await interaction.followUp({ embeds: [route_embed] });
     }
   }
 });
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isCommand()) return;
   if (interaction.commandName === "random") {
     if (interaction.options.getSubcommand() === "meme") {
-      await interaction.deferReply(/*{ ephemeral: true }*/);
+      await interaction.deferReply({ ephemeral: true });
       const res = await axios
         .get("https://meme-api.herokuapp.com/gimme/meme")
         .catch(function (error) {
           interaction.followUp("Une erreur est survenue !");
         });
-      res.data.preview[3];
-      const i_dont_like = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
+      console.log(res.data);
+      const i_dont_like = new MessageActionRow().addComponents(
+        new MessageButton()
           .setEmoji("<:checkmark:973943432236122153>")
           .setLabel("J'aime")
-          .setStyle("Success")
+          .setStyle("SUCCESS")
           .setCustomId(`i-like-button`),
-        new ButtonBuilder()
+        new MessageButton()
           .setEmoji("<:reload:1020374828072570940>")
           .setLabel("J'aime pas")
-          .setStyle("Danger")
+          .setStyle("DANGER")
           .setCustomId(`i-dont-like-button`)
       );
 
-      const memeEmbed = new EmbedBuilder()
+      const memeEmbed = new MessageEmbed()
         .setTitle("Meme Random")
         .setDescription(`🤡 Voici un meme généré aléatoirement.\n`)
         .setFields(
@@ -2759,7 +2764,7 @@ client.on("interactionCreate", async (interaction) => {
           .catch(function (error) {
             console.log(err);
           });
-        const newMemeEmbed = new EmbedBuilder()
+        const newMemeEmbed = new MessageEmbed()
           .setTitle("Meme Random")
           .setDescription(`🤡 Voici un meme généré aléatoirement.\n`)
           .setFields(
@@ -2799,259 +2804,10 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 });
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
   if (message.channel.id === "1020383694684434472") {
     message.react("❤️");
     message.react("💩");
-  }
-});
-client.on("messageCreate", (message) => {
-  if (message.mentions.has("964222935445426246")) {
-    message.channel.sendTyping();
-    message.channel.send(
-      `Tu peux retrouver mes commandes depuis ta touche **\`\`/\`\`**.\n\n> Pour plus d'informations, je t'invite à visiter le WiKi : https://github.com/sivelswhy/Zizou/wiki .\n\n> Pour quelconque aide, je t'invite à effectuer la commande **\`\`/support\`\`**`
-    );
-  }
-});
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isAutocomplete()) return;
-  if (interaction.commandName === "roblox") {
-    if (interaction.options.getSubcommand() === "utilisateur") {
-      const value = interaction.options.getFocused();
-      if (value.length < 3) return;
-      const autocomplete_url = `https://users.roblox.com/v1/users/search?keyword=${value}&limit=10`;
-      const res = await axios.get(autocomplete_url).catch(function (error) {
-        console.log("");
-      });
-      if (!res) return;
-      // console.log(res.data)
-      let choices = res.data.data.map((user) => ({
-        name: user.name,
-        value: `${user.id}`,
-      }));
-      return await interaction.respond(choices);
-    }
-  }
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "roblox") {
-    if (interaction.options.getSubcommand() === "utilisateur") {
-      const user = interaction.options.getString("pseudonyme");
-      const res = await axios.get(`https://users.roblox.com/v1/users/${user}`);
-
-      const date = res.data.created;
-      const timestamp = new Date(date).getTime();
-      console.table([timestamp, SnowflakeUtil.generate(timestamp)]);
-      const roblox_embed = new EmbedBuilder()
-        .setTitle(`Informations sur l'utilisateur ${user.name}`)
-        .addFields(
-          { name: "Pseudonyme", value: `${res.data.name}`, inline: true },
-          {
-            name: "Nom Affiché",
-            value: `${res.data.displayName}`,
-            inline: true,
-          },
-          { name: `ID`, value: `${user}`, inline: true },
-          {
-            name: "Date de Création",
-            value: `<t:${time(timestamp)}:F>`,
-            inline: true,
-          },
-          {
-            name: "Utilisateur Vérifié",
-            value: `${trueOrFalseInFR(res.data.hasVerifiedBadge)}`,
-            inline: true,
-          },
-          { name: "Est banni", value: `${trueOrFalseInFR(res.data.isBanned)}` },
-          {
-            name: "Description",
-            value: `${res.data.description}`,
-            inline: true,
-          }
-        )
-        .setColor("#F10851")
-        .setTimestamp();
-      return await interaction.reply({ embeds: [roblox_embed] });
-    }
-  }
-});
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isAutocomplete()) return;
-  if (interaction.commandName === "dictionnaire") {
-    const search = interaction.options.getFocused();
-    const res = await axios
-      .get(
-        `https://fr.wiktionary.org/w/rest.php/v1/search/title?q=${search}&limit=15`
-      )
-      .catch(function (error) {
-        return;
-      });
-    if (!res) {
-      return;
-    }
-    let choices = res.data.pages.map((definition) => ({
-      name: definition.title,
-      value: definition.key,
-    }));
-    return await interaction.respond(choices);
-  }
-});
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "dictionnaire") {
-    const mot = interaction.options.getString("mot");
-
-    const res = await axios.post(
-      "https://api-definition.fgainza.fr/app/api_wiki.php",
-      new URLSearchParams({
-        motWiki: `${mot}`,
-      }),
-      {
-        headers: {
-          authority: "api-definition.fgainza.fr",
-          accept: "application/json, text/javascript, */*; q=0.01",
-          "accept-language":
-            "fr-FR,fr;q=0.9,he-IL;q=0.8,he;q=0.7,en-US;q=0.6,en;q=0.5",
-          "cache-control": "no-cache",
-          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-          cookie: "PHPSESSID=2721a66a78c253b39da79384f6bc8931",
-          origin: "https://api-definition.fgainza.fr",
-          pragma: "no-cache",
-          referer: "https://api-definition.fgainza.fr/",
-          "sec-ch-ua":
-            '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": '"Windows"',
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
-          "x-requested-with": "XMLHttpRequest",
-        },
-      }
-    );
-
-    const wiki_embed = new EmbedBuilder()
-      .setTitle(`Résultats pour le mot ${res.data.motWiki}`)
-      .setColor("#F10851")
-      .setTimestamp();
-
-    if (res.data.url_img) {
-      wiki_embed.setThumbnail(res.data.url_img);
-    }
-    for (natureDef of res.data.natureDef[0]) {
-      console.log(natureDef);
-    }
-    return await interaction.reply({ embeds: [wiki_embed] });
-  }
-});
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isAutocomplete()) return;
-  if (interaction.commandName === "wikipedia") {
-    const search = interaction.options.getFocused();
-    const res = await axios
-      .get(
-        `https://fr.wikipedia.org/w/api.php?action=opensearch&limit=15&format=json&search=${search}`
-      )
-      .catch(function (error) {
-        return;
-      });
-    if (!res) {
-      return;
-    }
-    if (res.data[1] === undefined) {
-      return;
-    }
-    let choices = res.data[1].map((keyword) => ({
-      name: keyword,
-      value: keyword,
-    }));
-    return await interaction.respond(choices);
-  }
-});
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "wikipedia") {
-    let search = interaction.options.getString("search");
-    search = encodeURIComponent(search); //make the url search friendly
-    let url = `https://fr.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exlimit=1&explaintext&exintro&titles=${search}&redirects=`;
-    const res = await axios.get(url).catch(function (error) {
-      return interaction.reply({
-        content: `Il a eu une petite erreur lors de la recherche de ***\`${search}\`***. \n\n Voici des solutions à votre problèmes :\n\n> **Sélectionner un des choix lors de l'execution de la commande**\n\n> Réessayer plus tard\n\n> Ce mot est maudit par le BOT`,
-        ephemeral: true,
-      });
-    }); //make the api request with the query
-
-    if (!res || !res.data || !res.data.query) {
-      return;
-    } //error catching
-
-    const generated_number = Object.keys(res.data.query.pages)[0]; //number to get access to the article
-
-    if (res.data.query.pages["-1"]) {
-      return interaction.reply({
-        content: `Il a eu une petite erreur lors de la recherche de ***\`${search}\`***. \n\n Voici des solutions à votre problèmes :\n\n> **Sélectionner un des choix lors de l'execution de la commande**\n\n> Réessayer plus tard\n\n> Ce mot est maudit par le BOT`,
-        ephemeral: true,
-      });
-      return;
-    } //error catching
-
-    const main_res = res.data.query.pages[generated_number];
-
-    if (!main_res) return; //error catching
-
-    let extract = main_res.extract;
-
-    const photoUrl = `https://fr.wikipedia.org/w/api.php?action=query&titles=${search}&prop=pageimages&format=json&pithumbsize=2096`;
-
-    const photores = await axios.get(photoUrl).catch(function (error) {
-      return interaction.reply({
-        content: `Il a eu une petite erreur lors de la recherche de ***\`${search}\`***. \n\n Voici des solutions à votre problèmes :\n\n> **Sélectionner un des choix lors de l'execution de la commande**\n\n> Réessayer plus tard\n\n> Ce mot est maudit par le BOT`,
-        ephemeral: true,
-      });
-    });
-
-    if (photores.data.query.pages["-1"]) {
-      return interaction.reply({
-        content: `Il a eu une petite erreur lors de la recherche de ***\`${search}\`***. \n\n Voici des solutions à votre problèmes :\n\n> **Sélectionner un des choix lors de l'execution de la commande**\n\n> Réessayer plus tard\n\n> Ce mot est maudit par le BOT`,
-        ephemeral: true,
-      });
-      return;
-    }
-
-    //number to get access to the article
-    let thumbnail;
-    const checkExist = Object.keys(photores.data.query.pages[generated_number]);
-
-    if (!checkExist.includes("thumbnail")) {
-      thumbnail = "https://i.imgur.com/oWITh2i.png";
-    } else {
-      thumbnail = photores.data.query.pages[generated_number].thumbnail.source;
-    }
-
-    if (extract.length >= 4096) {
-      extract = extract.substring(0, 4090);
-      extract = `${extract}...`;
-    } //make the extract discord embed description length friendly
-
-    const wikipedia_embed = new EmbedBuilder()
-      .setImage()
-      .setTitle(
-        `<:pointinghand:1011704446960533504> Résultat sur ${main_res.title}`
-      )
-      .setURL(`https://fr.wikipedia.org/?curid=${main_res.pageid}`)
-      .setDescription(extract.replaceAll(/\n/g, "\n\n")) //replace all the "go to the next line" by two "go to the next line"
-      .setColor("#F10851")
-      .setTimestamp()
-      .setThumbnail(thumbnail);
-
-    return await interaction.reply({
-      embeds: [wikipedia_embed],
-      ephemeral: true,
-    });
   }
 });
 client.login(config.token);
